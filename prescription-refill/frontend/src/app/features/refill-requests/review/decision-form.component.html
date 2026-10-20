@@ -1,0 +1,59 @@
+<form class="decision-form" (submit)="$event.preventDefault()" aria-labelledby="decision-heading">
+  <h2 id="decision-heading">Decision</h2>
+
+  <label for="decision-note">Decision note</label>
+  <p id="decision-note-hint" class="hint">Required for approval and denial. It is saved with the decision.</p>
+  <textarea
+    id="decision-note"
+    rows="4"
+    [value]="note()"
+    (input)="onInput($event)"
+    [attr.aria-invalid]="errors().length > 0 ? 'true' : null"
+    [attr.aria-describedby]="errors().length > 0 ? 'decision-note-hint decision-note-error' : 'decision-note-hint'"
+  ></textarea>
+  <div class="field-meta">
+    @if (errors().length > 0) {
+      <p id="decision-note-error" class="field-error" role="alert">
+        <app-icon name="alert-octagon" [size]="16" />
+        <span>{{ errors().join(' ') }}</span>
+      </p>
+    }
+    <span class="counter tabular" [class.is-over]="noteLength() > noteLimit">
+      {{ noteLength() }} / {{ noteLimit }}<span class="visually-hidden"> characters</span>
+    </span>
+  </div>
+
+  @if (!canApprove()) {
+    <p id="approve-unavailable" class="unavailable">
+      <app-icon name="lock" [size]="16" />
+      <span>Approval is unavailable because a blocking rule applies. You can still deny the request.</span>
+    </p>
+  }
+
+  <div class="actions">
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="!canApprove() || submitting()"
+      [attr.aria-describedby]="canApprove() ? null : 'approve-unavailable'"
+      (click)="approve.emit()"
+    >
+      @if (pending() === 'approve') {
+        <span class="spinner" aria-hidden="true"></span>
+        Approving…
+      } @else {
+        <app-icon name="check-circle" [size]="16" />
+        Approve
+      }
+    </button>
+    <button type="button" class="btn btn-danger" [disabled]="submitting()" (click)="deny.emit()">
+      @if (pending() === 'deny') {
+        <span class="spinner" aria-hidden="true"></span>
+        Denying…
+      } @else {
+        <app-icon name="x-circle" [size]="16" />
+        Deny
+      }
+    </button>
+  </div>
+</form>

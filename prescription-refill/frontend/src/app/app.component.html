@@ -1,0 +1,30 @@
+<!-- Decorative ambient light on the dark canvas (004 research R4): no pointer events, hidden from
+     assistive technology, hidden in forced colors and print. -->
+<div class="ambient-layer" aria-hidden="true"></div>
+
+<header class="app-header on-canvas">
+  <div class="container app-header-inner">
+    <a class="brand" routerLink="/requests">
+      <span class="brand-mark"><app-icon name="pill" [size]="18" /></span>
+      <span class="brand-text">
+        <span class="brand-name">Refill Requests</span>
+        <span class="brand-tagline">Clinician review</span>
+      </span>
+    </a>
+    <app-connection-indicator />
+  </div>
+</header>
+
+<p class="demo-notice on-canvas" role="note">
+  <span class="container demo-notice-inner">
+    <app-icon name="info" [size]="16" />
+    <span>
+      Fictional demo data — not clinical guidance. No sign-in: anyone with access can decide
+      requests; not for real patient data.
+    </span>
+  </span>
+</p>
+
+<main class="container sheet app-main">
+  <router-outlet />
+</main>

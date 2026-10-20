@@ -1,0 +1,100 @@
+@use 'variables' as *;
+
+:host {
+  display: block;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border: 1px solid transparent;
+  // A solid left rule per kind adds a shape cue next to the icon and heading (004 research R5).
+  border-left-width: 4px;
+  border-radius: $radius-md;
+  margin-bottom: $space-3;
+  font-size: $font-size-sm;
+  line-height: $line-height;
+}
+
+.alert-icon {
+  margin-top: 1px;
+}
+
+.alert-body {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.alert-heading {
+  display: block;
+  margin-bottom: $space-1;
+  font-size: $font-size-card;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-tight;
+}
+
+.alert-content {
+  color: $color-text;
+
+  ::ng-deep p:last-child,
+  ::ng-deep ul:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.alert-info {
+  background: $color-info-bg;
+  border-color: $color-info-border;
+  border-left-color: $color-info;
+
+  .alert-icon,
+  .alert-heading {
+    color: $color-info;
+  }
+}
+
+.alert-warning {
+  background: $color-warning-bg;
+  border-color: $color-warning-border;
+  border-left-color: $color-warning;
+
+  .alert-icon,
+  .alert-heading {
+    color: $color-warning;
+  }
+}
+
+.alert-danger {
+  background: $color-danger-bg;
+  border-color: $color-danger-border;
+  border-left-color: $color-danger;
+
+  .alert-icon,
+  .alert-heading {
+    color: $color-danger;
+  }
+}
+
+.alert-success {
+  background: $color-success-bg;
+  border-color: $color-success-border;
+  border-left-color: $color-success;
+
+  .alert-icon,
+  .alert-heading {
+    color: $color-success;
+  }
+}
+
+@media (forced-colors: active) {
+  .alert {
+    border-color: CanvasText;
+  }
+
+  .alert-danger {
+    border-width: 3px;
+  }
+}

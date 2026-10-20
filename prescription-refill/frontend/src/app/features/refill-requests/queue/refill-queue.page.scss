@@ -1,0 +1,439 @@
+@use 'variables' as *;
+
+// The list lives in one panel: toolbar, meta, rows separated by dividers, pagination footer.
+.queue-panel {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $color-border;
+  background: $color-surface-subtle;
+
+  @media (min-width: $breakpoint-md) {
+    padding: $space-3 $space-5;
+  }
+}
+
+.search {
+  position: relative;
+  flex: 1 1 16rem;
+  max-width: 24rem;
+
+  input {
+    padding-left: 2.25rem;
+    background: $color-surface;
+  }
+
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    max-width: none;
+  }
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: $space-3;
+  transform: translateY(-50%);
+  color: $color-text-subtle;
+  pointer-events: none;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-1 $space-4;
+  padding: $space-3 $space-4 0;
+
+  @media (min-width: $breakpoint-md) {
+    padding: $space-3 $space-5 0;
+  }
+}
+
+.results-title {
+  margin: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text;
+  border-radius: $radius-sm;
+}
+
+.checked {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-1;
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-subtle;
+
+  app-icon {
+    margin-top: 2px;
+  }
+}
+
+// Narrow: three compact tiles in one row. Wide: inline pills.
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-2;
+  margin: $space-2 0 0;
+  padding: 0 $space-4;
+  list-style: none;
+
+  @media (min-width: $breakpoint-md) {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 $space-5;
+  }
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-1;
+  padding: $space-2 $space-3;
+  font-size: $font-size-xs;
+  line-height: $line-height-tight;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text-muted;
+
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-1 $space-3;
+    font-size: $font-size-sm;
+    border-radius: $radius-pill;
+  }
+
+  &.is-danger app-icon {
+    color: $color-danger;
+  }
+
+  &.is-warning app-icon {
+    color: $color-warning;
+  }
+
+  // Neutral like the review's no-issues state: factual, not a reassuring green (004 FR-015).
+  &.is-success app-icon {
+    color: $color-accent;
+  }
+}
+
+.summary-count {
+  font-weight: $font-weight-bold;
+  color: $color-text;
+
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    font-size: $font-size-base;
+  }
+}
+
+.panel-body {
+  padding: $space-4;
+
+  @media (min-width: $breakpoint-md) {
+    padding: $space-4 $space-5 $space-5;
+  }
+}
+
+.panel-footer {
+  padding: $space-2 $space-4 $space-4;
+  border-top: 1px solid $color-border;
+
+  @media (min-width: $breakpoint-md) {
+    padding: $space-2 $space-5 $space-4;
+  }
+}
+
+// Rows (004 research R7): compact, aligned, one row = one target.
+.queue {
+  list-style: none;
+  margin: $space-3 0 0;
+  padding: 0;
+  border-top: 1px solid $color-border;
+}
+
+.queue-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'avatar main chevron'
+    'avatar time chevron'
+    'avatar badges chevron';
+  align-items: center;
+  gap: $space-1 $space-3;
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $color-border;
+  background: $color-surface;
+  transition:
+    background-color $duration-fast $easing-standard,
+    box-shadow $duration-fast $easing-standard;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: $color-surface-subtle;
+
+    .patient {
+      color: $color-accent;
+    }
+
+    .chevron {
+      color: $color-accent;
+      transform: translateX(2px);
+    }
+  }
+
+  // Keyboard focus: an outline around the whole row plus a left bar, a shape cue beyond color
+  // (004 FR-010). The link's overlay still makes the whole row the click target (002 R8).
+  &:has(.queue-link:focus-visible) {
+    background: $color-accent-bg;
+    outline: $focus-outline;
+    outline-offset: -2px;
+    box-shadow: inset 3px 0 0 $color-accent;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: auto minmax(0, 2.4fr) minmax(0, 1.6fr) minmax(0, 1.4fr) auto;
+    grid-template-areas: 'avatar main time badges chevron';
+    gap: $space-4;
+    min-height: $row-min-height;
+    padding: $space-2 $space-5;
+  }
+}
+
+.avatar {
+  grid-area: avatar;
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: $radius-pill;
+  background: linear-gradient(135deg, rgba($glow-teal, 0.14), rgba($glow-indigo, 0.16));
+  color: $color-accent-2;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-sm;
+
+  @media (min-width: $breakpoint-md) {
+    align-self: center;
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.queue-item--decided .avatar {
+  background: $color-surface-sunken;
+  color: $color-text-muted;
+}
+
+.queue-link {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: $color-text;
+  text-decoration: none;
+  border-radius: $radius-sm;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  // The row draws the focus indicator (see .queue-item above).
+  &:focus-visible {
+    outline: none;
+  }
+
+  // Wide: patient and medication on one line, each truncated rather than wrapped.
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+    align-items: baseline;
+    gap: $space-3;
+
+    .patient,
+    .medication {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.patient {
+  font-weight: $font-weight-semibold;
+  overflow-wrap: anywhere;
+  transition: color $duration-fast $easing-standard;
+}
+
+.medication {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  overflow-wrap: anywhere;
+}
+
+.requested {
+  grid-area: time;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: $space-1;
+  font-size: $font-size-sm;
+  color: $color-text-subtle;
+
+  app-icon {
+    margin-top: 3px;
+  }
+}
+
+.badges {
+  grid-area: badges;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1 $space-2;
+
+  @media (min-width: $breakpoint-md) {
+    justify-content: flex-end;
+  }
+}
+
+.chevron {
+  grid-area: chevron;
+  color: $color-text-subtle;
+  transition:
+    color $duration-fast $easing-standard,
+    transform $duration-fast $easing-standard;
+}
+
+// Pointer glow (004 research R4). Each row is its own stacking context, so the glow (z-index -1)
+// paints above the row background but beneath its text, badges, and icons. It never takes pointer
+// events, and it shows only in ambient mode (fine pointer, no reduced motion); --glow-x/--glow-y are
+// row-relative coordinates written by the shared directive.
+.queue-item[data-glow] {
+  isolation: isolate;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      circle $glow-radius at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba($glow-teal, 0.1),
+      transparent 70%
+    );
+    transition: opacity $duration-base $easing-standard;
+  }
+}
+
+:host-context([data-ambient='on']) .queue-item[data-glow]:hover::after {
+  opacity: 1;
+}
+
+// Skeleton rows mirror the real row layout to avoid layout jumps.
+.skeleton-list {
+  display: block;
+  padding-top: $space-3;
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: $space-2 $space-3;
+  padding: $space-3 $space-4;
+  border-top: 1px solid $color-border;
+
+  .line-md,
+  .pill-skeleton {
+    grid-column: 2;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: auto minmax(0, 2.4fr) minmax(0, 1.6fr) minmax(0, 1.4fr);
+    gap: $space-4;
+    min-height: $row-min-height;
+    padding: $space-2 $space-5;
+
+    .line-md,
+    .pill-skeleton {
+      grid-column: auto;
+    }
+  }
+}
+
+.avatar-skeleton {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: $radius-pill;
+}
+
+.skeleton-lines {
+  display: grid;
+  gap: $space-2;
+}
+
+.line-lg {
+  width: 60%;
+  height: 0.875rem;
+}
+
+.line-sm {
+  width: 35%;
+  height: 0.75rem;
+}
+
+.line-md {
+  width: 70%;
+  height: 0.75rem;
+}
+
+.pill-skeleton {
+  width: 6rem;
+  height: 1.25rem;
+  border-radius: $radius-pill;
+  justify-self: start;
+
+  @media (min-width: $breakpoint-md) {
+    justify-self: end;
+  }
+}
+
+@media (forced-colors: active) {
+  .queue-panel,
+  .summary-item {
+    border-color: CanvasText;
+  }
+
+  .queue-item:has(.queue-link:focus-visible) {
+    outline-color: Highlight;
+  }
+}

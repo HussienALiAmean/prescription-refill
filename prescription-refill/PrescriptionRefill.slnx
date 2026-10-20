@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PrescriptionRefill.Api/PrescriptionRefill.Api.csproj" />
+    <Project Path="src/PrescriptionRefill.Application/PrescriptionRefill.Application.csproj" />
+    <Project Path="src/PrescriptionRefill.Domain/PrescriptionRefill.Domain.csproj" />
+    <Project Path="src/PrescriptionRefill.Infrastructure/PrescriptionRefill.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PrescriptionRefill.Domain.Tests/PrescriptionRefill.Domain.Tests.csproj" />
+    <Project Path="tests/PrescriptionRefill.IntegrationTests/PrescriptionRefill.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

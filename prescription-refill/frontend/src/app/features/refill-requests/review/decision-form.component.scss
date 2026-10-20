@@ -1,0 +1,72 @@
+@use 'variables' as *;
+
+.decision-form {
+  display: block;
+
+  h2 {
+    margin-bottom: $space-4;
+  }
+}
+
+.hint {
+  font-size: $font-size-sm;
+  color: $color-text-subtle;
+  margin: 0 0 $space-2;
+}
+
+.field-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+  min-height: 1.25rem;
+  margin-top: $space-1;
+
+  .field-error {
+    margin: 0;
+  }
+}
+
+.counter {
+  margin-left: auto;
+  font-size: $font-size-xs;
+  color: $color-text-subtle;
+  white-space: nowrap;
+
+  &.is-over {
+    color: $color-danger;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.unavailable {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  margin: $space-3 0 0;
+  padding: $space-2 $space-3;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  background: $color-surface-sunken;
+  border-radius: $radius-sm;
+
+  app-icon {
+    margin-top: 2px;
+  }
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-2;
+  margin-top: $space-4;
+
+  .btn {
+    min-height: $target-min;
+    font-size: $font-size-base;
+  }
+
+  @media (min-width: $breakpoint-sm) {
+    grid-template-columns: 1fr 1fr;
+  }
+}

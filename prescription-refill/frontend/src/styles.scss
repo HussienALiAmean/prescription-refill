@@ -1,0 +1,469 @@
+@use 'variables' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// Registered so the ambient light's position can transition smoothly (004 research R4). Not
+// inherited: only the light layer animates, never the content subtree.
+@property --light-x {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 18%;
+}
+
+@property --light-y {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 10%;
+}
+
+html {
+  font-size: 100%;
+  color-scheme: only light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family;
+  font-size: $font-size-base;
+  line-height: $line-height;
+  color: $color-text;
+  // The dark canvas (004 research R1); all content renders on the light `.sheet`.
+  background: $canvas-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 $space-3;
+  font-family: $font-family-display;
+  line-height: $line-height-tight;
+  color: $color-text;
+}
+
+// Compact hierarchy (004 research R9): weight and color carry the hierarchy, not size.
+h1 {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  letter-spacing: $letter-spacing-tight;
+
+  @media (min-width: $breakpoint-md) {
+    font-size: $font-size-title;
+  }
+}
+
+h2 {
+  font-size: $font-size-section;
+  font-weight: $font-weight-semibold;
+  letter-spacing: $letter-spacing-tight;
+}
+
+h3 {
+  font-size: $font-size-card;
+  font-weight: $font-weight-semibold;
+}
+
+p {
+  margin: 0 0 $space-3;
+}
+
+a {
+  color: $color-accent;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    color: $color-accent-hover;
+  }
+}
+
+// Focus: a real outline (not a box-shadow) so it survives forced-colors mode. On the dark canvas
+// the teal outline is too dark, so canvas regions use the light canvas accent instead.
+:focus-visible {
+  outline: $focus-outline;
+  outline-offset: $focus-offset;
+}
+
+.on-canvas :focus-visible {
+  outline-color: $canvas-accent;
+}
+
+// The light content sheet floating on the canvas (004 research R1). Clinical data lives here, on
+// opaque cards.
+.sheet {
+  position: relative;
+  z-index: 1;
+  background: $color-bg;
+  border-radius: $radius-sheet $radius-sheet 0 0;
+  box-shadow: $shadow-sheet;
+
+  @media (max-width: $breakpoint-sm) {
+    border-radius: $radius-sheet-sm $radius-sheet-sm 0 0;
+  }
+}
+
+// The one entrance animation (004 research R8): the sheet settles in on first load. The sheet
+// persists across routes, so this never replays per page or per row; reduced motion removes it.
+@keyframes sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.sheet {
+  animation: sheet-enter $duration-slow $easing-emphasized both;
+}
+
+.container {
+  width: 100%;
+  max-width: $content-max-width;
+  margin: 0 auto;
+  padding: 0 $space-4;
+
+  @media (min-width: $breakpoint-md) {
+    padding: 0 $space-6;
+  }
+}
+
+.card {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-xs;
+  padding: $space-4;
+
+  @media (min-width: $breakpoint-md) {
+    padding: $space-5;
+  }
+}
+
+.muted {
+  color: $color-text-muted;
+}
+
+.subtle {
+  color: $color-text-subtle;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  margin: 0 0 $space-1;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  letter-spacing: $letter-spacing-caps;
+  text-transform: uppercase;
+  color: $color-accent-2;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Page header pattern: title + description on the left, actions on the right.
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-4;
+  margin-bottom: $space-4;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.page-description {
+  margin: $space-1 0 0;
+  max-width: 40rem;
+  color: $color-text-muted;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}
+
+// Loading placeholders. The shimmer is decorative; screen readers get a status text instead.
+.skeleton {
+  display: block;
+  border-radius: $radius-sm;
+  background: linear-gradient(90deg, $color-surface-sunken 0%, $color-surface-subtle 50%, $color-surface-sunken 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: $radius-pill;
+  animation: spin 0.7s linear infinite;
+  flex: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  min-height: 2.5rem;
+  padding: $space-2 $space-4;
+  font: inherit;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-tight;
+  white-space: nowrap;
+  text-decoration: none;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  background: $color-surface;
+  color: $color-text;
+  box-shadow: $shadow-xs;
+  transition:
+    background-color $duration-fast $easing-standard,
+    border-color $duration-fast $easing-standard,
+    color $duration-fast $easing-standard,
+    box-shadow $duration-fast $easing-standard,
+    transform $duration-fast $easing-standard;
+
+  &:hover:not(:disabled) {
+    background: $color-surface-subtle;
+    border-color: $color-text-subtle;
+    box-shadow: $shadow-sm;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    background: $color-surface-sunken;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: $color-surface-sunken;
+    border-color: $color-border;
+    color: $color-text-subtle;
+    box-shadow: none;
+  }
+}
+
+.btn-primary {
+  background: $color-accent;
+  border-color: $color-accent;
+  color: $color-on-accent;
+
+  &:hover:not(:disabled) {
+    background: $color-accent-hover;
+    border-color: $color-accent-hover;
+  }
+
+  &:active:not(:disabled) {
+    background: $color-accent-hover;
+  }
+}
+
+.btn-danger {
+  background: $color-surface;
+  border-color: $color-danger;
+  color: $color-danger;
+
+  &:hover:not(:disabled) {
+    background: $color-danger-bg;
+    border-color: $color-danger-hover;
+    color: $color-danger-hover;
+  }
+
+  &:active:not(:disabled) {
+    background: $color-danger-bg;
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: $color-text-muted;
+
+  &:hover:not(:disabled) {
+    background: $color-surface-sunken;
+    border-color: transparent;
+    color: $color-text;
+  }
+}
+
+.btn-sm {
+  min-height: 2rem;
+  padding: $space-1 $space-3;
+}
+
+// Form controls
+label {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $space-1;
+}
+
+textarea,
+select,
+input {
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  background: $color-surface;
+  transition:
+    border-color $duration-fast $easing-standard,
+    box-shadow $duration-fast $easing-standard;
+
+  &:hover:not(:disabled) {
+    border-color: $color-text-subtle;
+  }
+
+  &:focus-visible {
+    border-color: $color-accent;
+    box-shadow: $focus-ring;
+  }
+}
+
+textarea {
+  resize: vertical;
+  line-height: $line-height;
+}
+
+select {
+  appearance: none;
+  padding-right: $space-6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $space-2 center;
+  cursor: pointer;
+}
+
+textarea[aria-invalid='true'] {
+  border-color: $color-danger;
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-1;
+  color: $color-danger;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin: $space-2 0 0;
+}
+
+// Narrow screens: every interactive control is at least $target-min (spec FR-028).
+@media (max-width: ($breakpoint-md - 1px)) {
+  .btn,
+  .btn-sm,
+  textarea,
+  select,
+  input {
+    min-height: $target-min;
+  }
+
+  .btn,
+  .btn-sm {
+    min-width: $target-min;
+  }
+}
+
+// Reduced motion: no shimmer, spin, transitions, or hover lift.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+// Print: content only, on white; decorative light and glow are never printed.
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .ambient-layer,
+  [data-glow]::after {
+    display: none !important;
+  }
+
+  .sheet {
+    box-shadow: none;
+  }
+}
+
+// Forced colors (Windows high contrast): restore borders that rely on background tints.
+@media (forced-colors: active) {
+  .card,
+  .btn,
+  .skeleton {
+    border: 1px solid CanvasText;
+  }
+
+  .btn:disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+
+  :focus-visible {
+    outline-color: Highlight;
+  }
+
+  // Decorative light and glow disappear; content and system colors remain.
+  .ambient-layer,
+  [data-glow]::after {
+    display: none !important;
+  }
+}

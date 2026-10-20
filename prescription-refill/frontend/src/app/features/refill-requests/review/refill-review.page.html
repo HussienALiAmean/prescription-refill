@@ -1,0 +1,96 @@
+<a class="btn btn-ghost btn-sm back" routerLink="/requests">
+  <app-icon name="arrow-left" [size]="16" />
+  Back to requests
+</a>
+
+@switch (state().kind) {
+  @case ('loading') {
+    <div class="loading" role="status">
+      <span class="visually-hidden">Loading request…</span>
+      <div class="skeleton-header" aria-hidden="true">
+        <span class="skeleton line-xs"></span>
+        <span class="skeleton line-title"></span>
+        <span class="skeleton line-sm"></span>
+      </div>
+      <div class="layout" aria-hidden="true">
+        <div class="decision-column">
+          <div class="card skeleton-card"><span class="skeleton block-lg"></span></div>
+          <div class="card skeleton-card"><span class="skeleton block-md"></span></div>
+        </div>
+        <div class="details-column">
+          <div class="card skeleton-card"><span class="skeleton block-md"></span></div>
+          <div class="card skeleton-card"><span class="skeleton block-lg"></span></div>
+        </div>
+      </div>
+    </div>
+  }
+  @case ('error') {
+    @if (loadProblem()?.code === 'not_found') {
+      <app-error-state heading="Request not found" message="This refill request was not found." (retry)="load()" />
+    } @else {
+      <app-error-state message="The request could not be loaded." (retry)="load()" />
+    }
+  }
+  @case ('loaded') {
+    @if (request(); as current) {
+      <header class="review-header">
+        <div>
+          <div class="eyebrow-row">
+            <p class="eyebrow">Refill request #{{ current.id }}</p>
+            <app-status-badge
+              [label]="current.status"
+              [tone]="current.status === 'Pending' ? 'info' : current.status === 'Approved' ? 'success' : 'danger'"
+            />
+          </div>
+          <h1>Refill request · {{ current.prescription.medicationName }}</h1>
+          <p class="header-meta">
+            <span class="meta-item">
+              <app-icon name="user" [size]="14" />
+              {{ current.patient.fullName }}
+            </span>
+            <span class="meta-item tabular">
+              <app-icon name="clock" [size]="14" />
+              <span>Requested <app-instant [value]="current.requestedAt" /></span>
+            </span>
+          </p>
+        </div>
+      </header>
+
+      <div class="notice" aria-live="polite">
+        @if (notice(); as message) {
+          <app-alert [kind]="message.kind">{{ message.text }}</app-alert>
+        }
+      </div>
+
+      <div class="layout">
+        <!-- Safety checks and the decision come first in reading order (narrow screens, screen
+             readers); at wide widths the grid places them to the right of the details. -->
+        <div class="decision-column">
+          @if (current.status === 'Pending' && current.evaluation) {
+            <app-evaluation-panel [evaluation]="current.evaluation" [refreshing]="refreshing()" (refresh)="refresh()" />
+            <div class="card">
+              <app-decision-form
+                [canApprove]="current.evaluation.canApprove"
+                [submitting]="submitting()"
+                [pending]="pendingDecision()"
+                [errors]="noteErrors()"
+                [(note)]="note"
+                (approve)="decide('approve')"
+                (deny)="decide('deny')"
+              />
+            </div>
+          } @else {
+            <app-decided-view [request]="current" />
+          }
+        </div>
+
+        <app-patient-panel
+          class="details-column"
+          [patient]="current.patient"
+          [prescription]="current.prescription"
+          [activePrescriptions]="current.activePrescriptions"
+        />
+      </div>
+    }
+  }
+}

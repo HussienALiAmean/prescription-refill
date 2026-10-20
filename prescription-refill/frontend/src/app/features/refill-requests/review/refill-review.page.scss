@@ -1,0 +1,125 @@
+@use 'variables' as *;
+
+.back {
+  margin: 0 0 $space-3 (-$space-3);
+}
+
+.review-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+  margin-bottom: $space-4;
+
+  h1 {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-1;
+
+  .eyebrow {
+    margin: 0;
+  }
+}
+
+.header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1 $space-4;
+  margin: $space-2 0 0;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+
+  app-icon {
+    color: $color-accent;
+  }
+}
+
+.notice:not(:empty) {
+  margin-bottom: $space-2;
+}
+
+// Narrow: one column, decisions first (DOM order). Wide: details left, decisions right and
+// sticky so the actions stay in view while reading the details (002 research R10).
+.layout {
+  display: grid;
+  gap: $space-4;
+
+  @media (min-width: $breakpoint-lg) {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-areas: 'details decision';
+    align-items: start;
+    gap: $space-5;
+  }
+}
+
+// Named areas only exist in the wide grid; assigning them on narrow screens would create an
+// implicit extra column.
+.details-column {
+  min-width: 0;
+
+  @media (min-width: $breakpoint-lg) {
+    grid-area: details;
+  }
+}
+
+.decision-column {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+
+  @media (min-width: $breakpoint-lg) {
+    grid-area: decision;
+    position: sticky;
+    top: calc(#{$header-height} + #{$space-4});
+  }
+}
+
+// Loading skeleton mirrors the final layout.
+.skeleton-header {
+  display: grid;
+  gap: $space-2;
+  margin-bottom: $space-5;
+}
+
+.details-column:has(.skeleton-card),
+.decision-column:has(.skeleton-card) {
+  display: grid;
+  gap: $space-4;
+}
+
+.line-xs {
+  width: 8rem;
+  height: 0.75rem;
+}
+
+.line-title {
+  width: min(22rem, 80%);
+  height: 1.75rem;
+}
+
+.line-sm {
+  width: min(16rem, 60%);
+  height: 0.875rem;
+}
+
+.block-lg {
+  height: 9rem;
+}
+
+.block-md {
+  height: 6rem;
+}

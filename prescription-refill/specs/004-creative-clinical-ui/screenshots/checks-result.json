@@ -1,0 +1,438 @@
+{
+ "scenarioIds": {
+  "clear": 9,
+  "blocked": 4,
+  "no-refills": 5,
+  "warning": 6,
+  "interaction": 7,
+  "blocked-warning": 8,
+  "decided": 3
+ },
+ "V1": {
+  "Pending-360": {
+   "overflow": 0,
+   "rows": 6
+  },
+  "Approved-360": {
+   "overflow": 0,
+   "rows": 2
+  },
+  "Denied-360": {
+   "overflow": 0,
+   "rows": 1
+  },
+  "nomatch-360": {
+   "overflow": 0,
+   "text": "No requests match “zzzz”."
+  },
+  "Pending-768": {
+   "overflow": 0,
+   "rows": 6
+  },
+  "Approved-768": {
+   "overflow": 0,
+   "rows": 2
+  },
+  "Denied-768": {
+   "overflow": 0,
+   "rows": 1
+  },
+  "nomatch-768": {
+   "overflow": 0,
+   "text": "No requests match “zzzz”."
+  },
+  "Pending-1280": {
+   "overflow": 0,
+   "rows": 6
+  },
+  "Approved-1280": {
+   "overflow": 0,
+   "rows": 2
+  },
+  "Denied-1280": {
+   "overflow": 0,
+   "rows": 1
+  },
+  "nomatch-1280": {
+   "overflow": 0,
+   "text": "No requests match “zzzz”."
+  },
+  "loading": {
+   "skeleton": true
+  }
+ },
+ "V2": {
+  "clear-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "blocked-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "no-refills-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "warning-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "interaction-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "blocked-warning-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "decided-360": {
+   "overflow": 0,
+   "stickyOrFixed": [],
+   "order": true
+  },
+  "clear-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  },
+  "blocked-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  },
+  "no-refills-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  },
+  "warning-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  },
+  "interaction-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  },
+  "blocked-warning-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  },
+  "decided-1280": {
+   "overflow": 0,
+   "stickyOrFixed": [
+    "header.app-header.on-canvas",
+    "div.decision-column"
+   ],
+   "order": true
+  }
+ },
+ "V3": {
+  "clear": {
+   "badgeLabel": "No issues found",
+   "badgeIcon": true,
+   "alerts": [
+    {
+     "kind": "success",
+     "heading": "No issues found",
+     "icon": true
+    }
+   ]
+  },
+  "blocked": {
+   "badgeLabel": "Approval blocked",
+   "badgeIcon": true,
+   "alerts": [
+    {
+     "kind": "danger",
+     "heading": "Approval blocked",
+     "icon": true
+    }
+   ]
+  },
+  "no-refills": {
+   "badgeLabel": "Approval blocked",
+   "badgeIcon": true,
+   "alerts": [
+    {
+     "kind": "danger",
+     "heading": "Approval blocked",
+     "icon": true
+    }
+   ]
+  },
+  "warning": {
+   "badgeLabel": "Warnings",
+   "badgeIcon": true,
+   "alerts": [
+    {
+     "kind": "warning",
+     "heading": "Warnings — clinical review required. They do not block approval.",
+     "icon": true
+    }
+   ]
+  },
+  "interaction": {
+   "badgeLabel": "Warnings",
+   "badgeIcon": true,
+   "alerts": [
+    {
+     "kind": "warning",
+     "heading": "Warnings — clinical review required. They do not block approval.",
+     "icon": true
+    }
+   ]
+  },
+  "blocked-warning": {
+   "badgeLabel": "Approval blocked",
+   "badgeIcon": true,
+   "alerts": [
+    {
+     "kind": "danger",
+     "heading": "Approval blocked",
+     "icon": true
+    },
+    {
+     "kind": "warning",
+     "heading": "Warnings — clinical review required. They do not block approval.",
+     "icon": true
+    }
+   ]
+  }
+ },
+ "V4": {
+  "overflow": 0,
+  "visible": {
+   "blocker": true,
+   "warning": true,
+   "note": true,
+   "approve": true,
+   "deny": true
+  }
+ },
+ "V5": {
+  "ambient": "on",
+  "canvas": {
+   "px": 300,
+   "py": 180,
+   "expected": {
+    "x": 300,
+    "y": 180
+   },
+   "pointerOk": true,
+   "glow": null,
+   "glowOk": null
+  },
+  "row": {
+   "px": 313,
+   "py": 466,
+   "expected": {
+    "x": 313,
+    "y": 466
+   },
+   "pointerOk": true,
+   "glow": {
+    "gx": 240,
+    "gy": 28,
+    "ex": 240,
+    "ey": 28
+   },
+   "glowOk": true
+  },
+  "rowGlowOpacity": "1",
+  "scrollY": 600,
+  "afterScroll": {
+   "px": 640,
+   "py": 300,
+   "expected": {
+    "x": 640,
+    "y": 300
+   },
+   "pointerOk": true,
+   "glow": null,
+   "glowOk": null
+  }
+ },
+ "V6": {
+  "before": {
+   "--pointer-x": "500px",
+   "--pointer-y": "300px"
+  },
+  "after": {
+   "--pointer-x": "500px",
+   "--pointer-y": "300px"
+  },
+  "runningAnimations": 0
+ },
+ "V7": {
+  "reducedMotion": {
+   "ambient": false,
+   "vars": {
+    "--pointer-x": "",
+    "--pointer-y": ""
+   },
+   "runningAnimations": 0
+  },
+  "touch": {
+   "ambient": false,
+   "hoverNone": true
+  }
+ },
+ "V8": [
+  {
+   "el": "a.brand Refill RequestsClinician",
+   "indicator": "outline 2px rgb(94, 234, 212)"
+  },
+  {
+   "el": "button.btn Refresh",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "input.visually-hidden Pending",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "input ",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "a.queue-link Jordan Okafor Brimexa",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "a.queue-link Morgan Reyes Dexolune",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "a.queue-link Riley Chen Elvadine",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "a.queue-link Sam Patel Fenquira",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "a.queue-link Taylor Nguyen Halvexin",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "a.queue-link Avery Lindqvist Avelorin",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "select 102550",
+   "indicator": "outline 2px rgb(15, 118, 110)"
+  },
+  {
+   "el": "body Refill RequestsClinician",
+   "indicator": "NONE"
+  }
+ ],
+ "V9": {
+  "layerDisplay": "none"
+ },
+ "V10a": {
+  "scrolledBy": 236,
+  "hitTarget": "a.queue-link",
+  "afterClickUrl": "/requests/4",
+  "glowPointerEvents": "none"
+ },
+ "V10b_ambientOn": {
+  "ambient": "on",
+  "typing": {
+   "supported": true,
+   "tasks": []
+  },
+  "typedLength": 200,
+  "scrolling": {
+   "supported": true,
+   "tasks": []
+  }
+ },
+ "V10c_ambientOff": {
+  "ambient": null,
+  "typing": {
+   "supported": true,
+   "tasks": []
+  },
+  "typedLength": 200,
+  "scrolling": {
+   "supported": true,
+   "tasks": []
+  }
+ },
+ "V11": {
+  "firstRowTop": 382,
+  "rowHeight": 56,
+  "pitch": 56,
+  "rowsFitting": 7,
+  "rowsInView": 6
+ },
+ "V12": {
+  "queue-360": {
+   "checked": 15,
+   "small": []
+  },
+  "review-360": {
+   "checked": 6,
+   "small": []
+  },
+  "queue-767": {
+   "checked": 15,
+   "small": []
+  },
+  "review-767": {
+   "checked": 6,
+   "small": []
+  }
+ },
+ "SC002": {
+  "queue": {
+   "checked": 58,
+   "failures": []
+  },
+  "queue-approved": {
+   "checked": 29,
+   "failures": []
+  },
+  "review-blocked-warning": {
+   "checked": 53,
+   "failures": []
+  },
+  "review-clear": {
+   "checked": 40,
+   "failures": []
+  },
+  "review-decided": {
+   "checked": 35,
+   "failures": []
+  }
+ }
+}
