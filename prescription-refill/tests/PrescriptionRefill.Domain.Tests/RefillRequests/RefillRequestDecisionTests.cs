@@ -107,8 +107,8 @@ public sealed class RefillRequestDecisionTests
     {
         var (request, rx, facts) = Pending();
 
-        Assert.IsType<DecisionResult.InvalidNote>(request.Approve(note, facts, Now));
-        Assert.IsType<DecisionResult.InvalidNote>(request.Deny(note, Now));
+        Assert.Equal(NoteError.Required, Assert.IsType<DecisionResult.InvalidNote>(request.Approve(note, facts, Now)).Error);
+        Assert.Equal(NoteError.Required, Assert.IsType<DecisionResult.InvalidNote>(request.Deny(note, Now)).Error);
         Assert.Equal(RefillRequestStatus.Pending, request.Status);
         Assert.Equal(2, rx.RemainingRefills);
     }
@@ -120,7 +120,7 @@ public sealed class RefillRequestDecisionTests
         var (rejected, _, rejectedFacts) = Pending();
 
         Assert.IsType<DecisionResult.Decided>(accepted.Approve(new string('a', 1000), facts, Now));
-        Assert.IsType<DecisionResult.InvalidNote>(rejected.Approve(new string('a', 1001), rejectedFacts, Now));
+        Assert.Equal(NoteError.TooLong, Assert.IsType<DecisionResult.InvalidNote>(rejected.Approve(new string('a', 1001), rejectedFacts, Now)).Error);
     }
 
     [Fact]
@@ -129,6 +129,6 @@ public sealed class RefillRequestDecisionTests
         var (request, _, _) = Pending();
         request.Deny("First.", Now);
 
-        Assert.IsType<DecisionResult.InvalidNote>(request.Deny(" ", Now));
+        Assert.Equal(NoteError.Required, Assert.IsType<DecisionResult.InvalidNote>(request.Deny(" ", Now)).Error);
     }
 }

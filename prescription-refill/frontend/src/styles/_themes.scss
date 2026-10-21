@@ -1,0 +1,112 @@
+// Theme token sets (spec 005 FR-029–FR-033, research R12). Every themed color role is a CSS custom
+// property, so the theme switches at runtime without a reload. `_variables.scss` keeps the SCSS
+// names (`$color-text: var(--color-text)`), so component styles are unchanged.
+//
+// Format, read by specs/005-bilingual-localization-themes/scripts/contrast-check.mjs: each set sits
+// between `tokens:<theme>:start/end` marker comments, with one color per line as
+// `--token: #rrggbb;`. Other declarations (shadows, opacity) may sit inside but are not checked.
+//
+// Light is the 004 palette, unchanged; its ratios are noted in `_variables.scss` history. Dark keeps
+// clinical content on opaque surfaces (FR-030); its ratios are in research R12 and are recomputed by
+// the contrast script.
+
+@mixin light-tokens {
+  /* tokens:light:start */
+  --color-bg: #f4f7fc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8fafc;
+  --color-surface-sunken: #eef2f6;
+  --color-border: #e2e8f0;
+  --color-border-strong: #8492a6;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-subtle: #5b6b80;
+  --color-accent: #0f766e;
+  --color-accent-hover: #115e59;
+  --color-accent-bg: #effaf8;
+  --color-accent-border: #99d5cd;
+  --color-on-accent: #ffffff;
+  --color-accent-2: #4f46e5;
+  --color-danger: #b42318;
+  --color-danger-hover: #912018;
+  --color-danger-bg: #fef3f2;
+  --color-danger-border: #f5b5ae;
+  --color-warning: #93370d;
+  --color-warning-bg: #fffaeb;
+  --color-warning-border: #f7cf7c;
+  --color-success: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-success-border: #9fe2bc;
+  --color-info: #175cd3;
+  --color-info-bg: #eff8ff;
+  --color-info-border: #a9d4fb;
+  --focus-color: #0f766e;
+  --canvas-bg: #0b172a;
+  --select-arrow: #475569;
+  /* tokens:light:end */
+  --focus-ring: 0 0 0 3px rgba(15, 118, 110, 0.25);
+  --canvas-header-bg: rgba(11, 23, 42, 0.86);
+  --sheet-border: transparent;
+  --glow-opacity: 1;
+  --select-arrow-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+
+@mixin dark-tokens {
+  /* tokens:dark:start */
+  --color-bg: #0b1220;
+  --color-surface: #121b2d;
+  --color-surface-subtle: #172338;
+  --color-surface-sunken: #0e1728;
+  --color-border: #24324a;
+  --color-border-strong: #6b7f99;
+  --color-text: #e6edf6;
+  --color-text-muted: #aebbcc;
+  --color-text-subtle: #94a3b8;
+  --color-accent: #2dd4bf;
+  --color-accent-hover: #5eead4;
+  --color-accent-bg: #0d2a2a;
+  --color-accent-border: #1f6f68;
+  --color-on-accent: #042f2e;
+  --color-accent-2: #a5b4fc;
+  --color-danger: #fca5a5;
+  --color-danger-hover: #fecaca;
+  --color-danger-bg: #2b1416;
+  --color-danger-border: #f87171;
+  --color-warning: #fcd34d;
+  --color-warning-bg: #2a2109;
+  --color-warning-border: #f59e0b;
+  --color-success: #86efac;
+  --color-success-bg: #0f2a1c;
+  --color-success-border: #22c55e;
+  --color-info: #93c5fd;
+  --color-info-bg: #10213d;
+  --color-info-border: #60a5fa;
+  --focus-color: #7dd3fc;
+  --canvas-bg: #060d1a;
+  --select-arrow: #aebbcc;
+  /* tokens:dark:end */
+  --focus-ring: 0 0 0 3px rgba(125, 211, 252, 0.3);
+  --canvas-header-bg: rgba(6, 13, 26, 0.86);
+  --sheet-border: #24324a;
+  --glow-opacity: 0.6;
+  --select-arrow-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23aebbcc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+
+// Light is the default, including when the attribute is missing or unknown.
+:root {
+  @include light-tokens;
+}
+
+:root[data-theme='dark'] {
+  @include dark-tokens;
+}
+
+// Print is always legible on light paper, whatever the theme (FR-033).
+@media print {
+  :root,
+  :root[data-theme='dark'] {
+    @include light-tokens;
+  }
+}

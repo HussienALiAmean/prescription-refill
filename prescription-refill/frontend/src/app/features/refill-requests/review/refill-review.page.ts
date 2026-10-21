@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, numberAttribute, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { Messages } from '../../../core/i18n/messages';
 import { reloadOnChanges } from '../../../core/realtime/reload-triggers';
 import { ApiProblem } from '../../../shared/http/problem-details';
 import { InstantComponent } from '../../../shared/time/instant.component';
@@ -19,9 +22,13 @@ type ReviewState =
   | { kind: 'error'; problem: ApiProblem }
   | { kind: 'loaded'; request: RefillRequestDetail };
 
+/**
+ * A notice names its text by key, so it is shown in whichever language is active, including
+ * after a language switch (spec 005 FR-018).
+ */
 interface Notice {
   kind: AlertKind;
-  text: string;
+  key: keyof Messages['review']['notices'];
 }
 
 /**
@@ -49,6 +56,8 @@ interface Notice {
 })
 export class RefillReviewPage implements OnInit {
   private readonly api = inject(RefillRequestsApi);
+  private readonly i18n = inject(I18nService);
+  protected readonly t = this.i18n.t;
 
   readonly id = input.required<number, unknown>({ transform: numberAttribute });
 
@@ -71,8 +80,10 @@ export class RefillReviewPage implements OnInit {
   });
 
   constructor() {
-    // Only hints about this request matter here (US4).
+    // Only hints about this request matter here (US4). A language switch also reloads, keeping the
+    // typed note (spec 005 FR-012); server validation text from the old language is dropped.
     reloadOnChanges(() => this.refresh(), (event) => event.requestId === this.id());
+    this.i18n.languageChanged$.pipe(takeUntilDestroyed()).subscribe(() => this.noteErrors.set([]));
   }
 
   ngOnInit(): void {
@@ -104,7 +115,7 @@ export class RefillReviewPage implements OnInit {
         this.pendingDecision.set(null);
         this.note.set('');
         this.state.set({ kind: 'loaded', request });
-        this.notice.set({ kind: 'success', text: kind === 'approve' ? 'Request approved.' : 'Request denied.' });
+        this.notice.set({ kind: 'success', key: kind === 'approve' ? 'approved' : 'denied' });
       },
       error: (problem: ApiProblem) => {
         this.submitting.set(false);
@@ -121,34 +132,25 @@ export class RefillReviewPage implements OnInit {
         if (current && problem.evaluation) {
           this.state.set({ kind: 'loaded', request: { ...current, evaluation: problem.evaluation as Evaluation } });
         }
-        this.notice.set({
-          kind: 'warning',
-          text: 'Approval is blocked based on current data. The safety checks below have been updated. You can still deny the request.',
-        });
+        this.notice.set({ kind: 'warning', key: 'blocked' });
         return;
       }
       case 'concurrency_conflict':
-        this.notice.set({
-          kind: 'warning',
-          text: 'This request changed while your decision was being saved. Nothing was saved. The latest data has been loaded; review it and decide again.',
-        });
+        this.notice.set({ kind: 'warning', key: 'conflict' });
         this.refresh();
         return;
       case 'request_already_decided':
-        this.notice.set({ kind: 'info', text: 'This request has already been decided. Nothing was changed.' });
+        this.notice.set({ kind: 'info', key: 'alreadyDecided' });
         this.refresh();
         return;
       case 'validation_failed':
-        this.noteErrors.set(problem.errors?.['note'] ?? [problem.title ?? 'The decision is not valid.']);
+        this.noteErrors.set(problem.errors?.['note'] ?? [problem.title ?? this.t().review.invalidDecision]);
         return;
       case 'not_found':
-        this.notice.set({ kind: 'danger', text: 'This request no longer exists.' });
+        this.notice.set({ kind: 'danger', key: 'notFound' });
         return;
       default:
-        this.notice.set({
-          kind: 'danger',
-          text: 'The decision could not be confirmed. Refresh to see the current state before trying again.',
-        });
+        this.notice.set({ kind: 'danger', key: 'unconfirmed' });
     }
   }
 
@@ -159,13 +161,13 @@ export class RefillReviewPage implements OnInit {
         this.refreshing.set(false);
         this.state.set({ kind: 'loaded', request });
         if (previous?.status === 'Pending' && request.status !== 'Pending' && !this.notice()) {
-          this.notice.set({ kind: 'info', text: 'This request was decided elsewhere. It is now read-only.' });
+          this.notice.set({ kind: 'info', key: 'decidedElsewhere' });
         }
       },
       error: (problem: ApiProblem) => {
         this.refreshing.set(false);
         if (this.request() && problem.code !== 'not_found') {
-          this.notice.set({ kind: 'danger', text: 'The latest data could not be loaded. Try Refresh again.' });
+          this.notice.set({ kind: 'danger', key: 'refreshFailed' });
         } else {
           this.state.set({ kind: 'error', problem });
         }

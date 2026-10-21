@@ -4,6 +4,7 @@ import { AlertComponent } from './alert.component';
 import { EmptyStateComponent } from './empty-state.component';
 import { ErrorStateComponent } from './error-state.component';
 import { StatusBadgeComponent } from './status-badge.component';
+import { provideI18nTesting } from '../../core/i18n/testing';
 
 @Component({
   imports: [AlertComponent, EmptyStateComponent, ErrorStateComponent, StatusBadgeComponent],
@@ -20,6 +21,9 @@ class HostComponent {
 }
 
 describe('shared UI', () => {
+  // English, so these assertions keep their meaning with the Arabic default (spec 005 SC-010).
+  beforeEach(() => TestBed.configureTestingModule({ providers: provideI18nTesting() }));
+
   it('renders alerts with roles, empty and error states, and badges', () => {
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();

@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DecisionFormComponent } from './decision-form.component';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 describe('DecisionFormComponent', () => {
+  // English, so these assertions keep their meaning with the Arabic default (spec 005 SC-010).
+  beforeEach(() => TestBed.configureTestingModule({ providers: provideI18nTesting() }));
+
   let fixture: ComponentFixture<DecisionFormComponent>;
   let el: HTMLElement;
 

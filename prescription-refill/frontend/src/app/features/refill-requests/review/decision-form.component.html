@@ -1,11 +1,13 @@
 <form class="decision-form" (submit)="$event.preventDefault()" aria-labelledby="decision-heading">
-  <h2 id="decision-heading">Decision</h2>
+  <h2 id="decision-heading">{{ t().decision.heading }}</h2>
 
-  <label for="decision-note">Decision note</label>
-  <p id="decision-note-hint" class="hint">Required for approval and denial. It is saved with the decision.</p>
+  <label for="decision-note">{{ t().decision.noteLabel }}</label>
+  <p id="decision-note-hint" class="hint">{{ t().decision.noteHint }}</p>
+  <!-- dir="auto": the note is sent and shown exactly as typed, in its own direction (spec 005 FR-004, FR-015). -->
   <textarea
     id="decision-note"
     rows="4"
+    dir="auto"
     [value]="note()"
     (input)="onInput($event)"
     [attr.aria-invalid]="errors().length > 0 ? 'true' : null"
@@ -19,14 +21,14 @@
       </p>
     }
     <span class="counter tabular" [class.is-over]="noteLength() > noteLimit">
-      {{ noteLength() }} / {{ noteLimit }}<span class="visually-hidden"> characters</span>
+      {{ noteLength() }} / {{ noteLimit }}<span class="visually-hidden"> {{ t().decision.charactersSuffix }}</span>
     </span>
   </div>
 
   @if (!canApprove()) {
     <p id="approve-unavailable" class="unavailable">
       <app-icon name="lock" [size]="16" />
-      <span>Approval is unavailable because a blocking rule applies. You can still deny the request.</span>
+      <span>{{ t().decision.approveUnavailable }}</span>
     </p>
   }
 
@@ -40,19 +42,19 @@
     >
       @if (pending() === 'approve') {
         <span class="spinner" aria-hidden="true"></span>
-        Approving…
+        {{ t().decision.approving }}
       } @else {
         <app-icon name="check-circle" [size]="16" />
-        Approve
+        {{ t().decision.approve }}
       }
     </button>
     <button type="button" class="btn btn-danger" [disabled]="submitting()" (click)="deny.emit()">
       @if (pending() === 'deny') {
         <span class="spinner" aria-hidden="true"></span>
-        Denying…
+        {{ t().decision.denying }}
       } @else {
         <app-icon name="x-circle" [size]="16" />
-        Deny
+        {{ t().decision.deny }}
       }
     </button>
   </div>

@@ -2,6 +2,13 @@ using PrescriptionRefill.Domain.Evaluation;
 
 namespace PrescriptionRefill.Domain.RefillRequests;
 
+/// <summary>Why a decision note was rejected (FR-010); text is composed outside Domain.</summary>
+public enum NoteError
+{
+    Required,
+    TooLong,
+}
+
 /// <summary>Outcome of an approve or deny decision (FR-010, FR-011, FR-015).</summary>
 public abstract record DecisionResult
 {
@@ -13,7 +20,7 @@ public abstract record DecisionResult
     public sealed record Decided(RefillRequestStatus Status) : DecisionResult;
 
     /// <summary>The note is missing, blank, or too long; nothing changed.</summary>
-    public sealed record InvalidNote(string Message) : DecisionResult;
+    public sealed record InvalidNote(NoteError Error) : DecisionResult;
 
     /// <summary>The request was already Approved or Denied; nothing changed.</summary>
     public sealed record AlreadyDecided(RefillRequestStatus Status) : DecisionResult;

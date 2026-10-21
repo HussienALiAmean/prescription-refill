@@ -11,7 +11,7 @@
   padding: $space-3 $space-4;
   border: 1px solid transparent;
   // A solid left rule per kind adds a shape cue next to the icon and heading (004 research R5).
-  border-left-width: 4px;
+  border-inline-start-width: 4px;
   border-radius: $radius-md;
   margin-bottom: $space-3;
   font-size: $font-size-sm;
@@ -48,7 +48,7 @@
 .alert-info {
   background: $color-info-bg;
   border-color: $color-info-border;
-  border-left-color: $color-info;
+  border-inline-start-color: $color-info;
 
   .alert-icon,
   .alert-heading {
@@ -59,7 +59,7 @@
 .alert-warning {
   background: $color-warning-bg;
   border-color: $color-warning-border;
-  border-left-color: $color-warning;
+  border-inline-start-color: $color-warning;
 
   .alert-icon,
   .alert-heading {
@@ -70,7 +70,7 @@
 .alert-danger {
   background: $color-danger-bg;
   border-color: $color-danger-border;
-  border-left-color: $color-danger;
+  border-inline-start-color: $color-danger;
 
   .alert-icon,
   .alert-heading {
@@ -81,7 +81,7 @@
 .alert-success {
   background: $color-success-bg;
   border-color: $color-success-border;
-  border-left-color: $color-success;
+  border-inline-start-color: $color-success;
 
   .alert-icon,
   .alert-heading {

@@ -47,7 +47,7 @@ public sealed class RefillRequest
 
         return prescription.IsActive
             ? new CreateRequestResult.Created(new RefillRequest(prescription, now))
-            : new CreateRequestResult.PrescriptionInactive("Prescription is inactive.");
+            : new CreateRequestResult.PrescriptionInactive();
     }
 
     /// <summary><see cref="TryCreate"/> for callers that already know the prescription is active.</summary>
@@ -55,7 +55,7 @@ public sealed class RefillRequest
         TryCreate(prescription, now) switch
         {
             CreateRequestResult.Created created => created.Request,
-            CreateRequestResult.PrescriptionInactive inactive => throw new InvalidOperationException(inactive.Message),
+            CreateRequestResult.PrescriptionInactive => throw new InvalidOperationException("Prescription is inactive."),
             var other => throw new InvalidOperationException($"Unexpected result {other}."),
         };
 
@@ -109,11 +109,11 @@ public sealed class RefillRequest
         var trimmed = note?.Trim();
         if (string.IsNullOrEmpty(trimmed))
         {
-            return new DecisionResult.InvalidNote("A decision note is required.");
+            return new DecisionResult.InvalidNote(NoteError.Required);
         }
 
         return trimmed.Length > MaxNoteLength
-            ? new DecisionResult.InvalidNote($"The decision note must be at most {MaxNoteLength} characters.")
+            ? new DecisionResult.InvalidNote(NoteError.TooLong)
             : null;
     }
 

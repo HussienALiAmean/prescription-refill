@@ -59,7 +59,7 @@ public sealed class SchemaTests(SqlServerDatabaseFixture database) : IClassFixtu
 
         var error = await Assert.ThrowsAsync<SqlException>(() =>
             _data.ExecuteSqlAsync(
-                $"INSERT INTO DrugInteractions (MedicationAId, MedicationBId, Description) VALUES ({arranged.MedicationId + 1}, {arranged.MedicationId}, 'reversed')"));
+                $"INSERT INTO DrugInteractions (MedicationAId, MedicationBId, DescriptionAr, DescriptionEn) VALUES ({arranged.MedicationId + 1}, {arranged.MedicationId}, N'معكوس', 'reversed')"));
 
         Assert.Equal(547, error.Number);
         Assert.Contains("CK_DrugInteractions_PairOrder", error.Message);
@@ -102,5 +102,79 @@ public sealed class SchemaTests(SqlServerDatabaseFixture database) : IClassFixtu
         Assert.Equal(["Prescriptions", "RefillRequests"], tables);
     }
 
+    // ---- spec 005: bilingual reference data (FR-019, FR-020, FR-024) ---------------------------
+
+    [Theory]
+    [InlineData("IX_Medications_NameAr", "NameAr")]
+    [InlineData("IX_Medications_NameEn", "NameEn")]
+    public async Task Medication_names_are_unique_per_language(string indexName, string column)
+    {
+        await using var db = database.CreateContext();
+
+        var index = await db.Database
+            .SqlQuery<IndexInfo>($"""
+                SELECT i.is_unique AS IsUnique, i.has_filter AS HasFilter, i.filter_definition AS FilterDefinition
+                FROM sys.indexes i
+                WHERE i.name = {indexName} AND i.object_id = OBJECT_ID('Medications')
+                """)
+            .SingleAsync();
+        var indexedColumns = await db.Database
+            .SqlQuery<string>($"""
+                SELECT c.name AS Value
+                FROM sys.indexes i
+                JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+                JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+                WHERE i.name = {indexName} AND i.object_id = OBJECT_ID('Medications')
+                """)
+            .ToListAsync();
+
+        Assert.True(index.IsUnique);
+        Assert.False(index.HasFilter);
+        Assert.Equal([column], indexedColumns);
+    }
+
+    [Theory]
+    [InlineData("Medications", "NameAr", 100)]
+    [InlineData("Medications", "NameEn", 100)]
+    [InlineData("DrugInteractions", "DescriptionAr", 300)]
+    [InlineData("DrugInteractions", "DescriptionEn", 300)]
+    public async Task Bilingual_columns_are_required_nvarchar_with_the_existing_lengths(string table, string column, int length)
+    {
+        await using var db = database.CreateContext();
+
+        var info = await db.Database
+            .SqlQuery<ColumnInfo>($"""
+                SELECT ty.name AS TypeName, c.max_length / 2 AS Length, c.is_nullable AS IsNullable
+                FROM sys.columns c
+                JOIN sys.types ty ON ty.user_type_id = c.user_type_id
+                WHERE c.object_id = OBJECT_ID({table}) AND c.name = {column}
+                """)
+            .SingleAsync();
+
+        Assert.Equal(new ColumnInfo("nvarchar", length, false), info);
+    }
+
+    [Fact]
+    public async Task There_is_no_translation_table_and_no_single_language_column_left()
+    {
+        await using var db = database.CreateContext();
+
+        var leftovers = await db.Database
+            .SqlQuery<string>($"""
+                SELECT t.name + '.' + c.name AS Value
+                FROM sys.columns c
+                JOIN sys.tables t ON t.object_id = c.object_id
+                WHERE (t.name = 'Medications' AND c.name = 'Name')
+                   OR (t.name = 'DrugInteractions' AND c.name = 'Description')
+                UNION ALL
+                SELECT name FROM sys.tables WHERE name LIKE '%Translation%'
+                """)
+            .ToListAsync();
+
+        Assert.Empty(leftovers);
+    }
+
     private sealed record IndexInfo(bool IsUnique, bool HasFilter, string? FilterDefinition);
+
+    private sealed record ColumnInfo(string TypeName, int Length, bool IsNullable);
 }

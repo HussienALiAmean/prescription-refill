@@ -14,6 +14,9 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+    <!-- Mapping: dual RPL-1.5 / Lucky Penny License Agreement; used under the Community License
+         (spec 005 DG-1, research R1). The key comes from configuration, never the repository. -->
+    <PackageVersion Include="AutoMapper" Version="16.2.0" />
     <!-- Tests -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />

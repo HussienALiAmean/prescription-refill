@@ -67,6 +67,20 @@ artifacts they changed. AI = Claude Code (Opus 5.5) using Spec Kit commands.
 | C6 | `/speckit-implement` | Directive with 11 specs (including one proving pointer moves run outside Angular's zone), tokens, shell, queue, review; real-browser checks V1–V12 from a clean copy | Kept |
 | C7 | Visual iteration | Screenshot review found the queue's "No issues found" badge still green; changed to neutral. Check-script defects (touch parameter, assertions before data rendered, throttling hiding the skeleton) fixed and all checks re-run | Kept |
 
+## Bilingual localization and themes (feature 005, 2026-10-21 – 2026-10-22)
+
+| # | Prompt (summary) | Outcome | Kept / rejected |
+|---|------------------|---------|-----------------|
+| L1 | `/speckit-specify` "Bilingual Localization and Theme Preferences" (Arabic default/RTL, `NameAr`/`NameEn`, AutoMapper `ProjectTo`, request culture, Light/Dark) | Spec 005 with 14 recorded conflicts against 001–004; found AutoMapper is not installed and its MIT 14.x release carries an unpatched high-severity advisory | Kept |
+| L2 | Clarifications Q1–Q3 | Bilingual interaction descriptions; search in the active language only; AutoMapper kept but gated (DG-1): no paid license assumed, version and license verified first | Kept |
+| L3 | `/speckit-plan` | One mapper configuration per language, so SQL names one column; display read separate from the rule read; typed message catalog; in-house typed dictionary; boot script against first-paint flashes | Kept. Parameterized projection **rejected** (CASE over both columns); `@angular/localize` and ngx-translate **rejected** (reload or new package) |
+| L4 | `/speckit-clarify` | Community License chosen by the author | Kept |
+| L5 | `/speckit-tasks`, then `/speckit-analyze` (three rounds) | Found: Arabic dictionary created after the default switched to Arabic; two reads could show refills from one snapshot and the evaluation from another; migration reading a mutable seed list; license status drifting between documents; an untimed 1 s criterion; no plan for an open gate | All fixed in the documents before implementation |
+| L6 | `/speckit-implement` T001 | License verified from the package nuspec, the GitHub `LICENSE.md`, and the License Agreement PDF (v2.0, section 4.2(g)); key configuration from the AutoMapper docs | Kept; evidence in research R1 |
+| L7 | Implementation choice | The display read is two `ProjectTo` lookups (names and descriptions) merged into DTOs built from the rule read, instead of full-DTO projections, so no safety value can come from a second snapshot | Kept (research R3 "As implemented") |
+| L8 | Test runs | With five more database-creating test classes, parallel `CREATE DATABASE` timed out on the local SQL Server (seen once in the baseline too). Limited xUnit to 4 classes at a time with a 180 s command timeout; leftover test databases from aborted runs were dropped | Kept |
+| L9 | Browser checks | Found the router's English page titles overriding the Arabic title; added a localized title strategy. Fixed a check-script defect (first-frame recorder) and re-ran all 73 checks | Kept |
+
 ## Review notes
 
 - Every AI-generated change was built and tested before it was kept; test results are recorded

@@ -15,8 +15,8 @@ namespace PrescriptionRefill.Infrastructure.Seeding;
 /// </summary>
 public sealed class DemoDataSeeder(RefillDbContext db, TimeProvider clock)
 {
-    public const string SyntheticInteractionDescription =
-        "Synthetic demo interaction (fictional, not clinical guidance).";
+    /// <summary>English seeded description, unchanged before and after feature 005.</summary>
+    public const string SyntheticInteractionDescription = SeedNames.InteractionDescriptionEn;
 
     /// <returns><c>true</c> when data was added; <c>false</c> when the database already had data.</returns>
     public async Task<bool> SeedAsync(CancellationToken cancellationToken = default)
@@ -32,21 +32,18 @@ public sealed class DemoDataSeeder(RefillDbContext db, TimeProvider clock)
 
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
-        var medications = new[]
-        {
-            "Avelorin", "Brimexa", "Corvantil", "Dexolune", "Elvadine", "Fenquira",
-            "Glimora", "Halvexin", "Jurvane", "Kestrolin", "Lumavex",
-        }.ToDictionary(name => name, name => new Medication(name));
+        // Keyed by English name; each medication also gets its authored Arabic name (spec 005 FR-019).
+        var medications = SeedNames.Medications.ToDictionary(n => n.En, n => new Medication(n.Ar, n.En));
         db.Medications.AddRange(medications.Values);
         await db.SaveChangesAsync(cancellationToken);
 
         // Pairs need persisted keys so they are stored in ascending order.
         DrugInteraction[] interactions =
         [
-            new(medications["Avelorin"], medications["Corvantil"], SyntheticInteractionDescription),
-            new(medications["Fenquira"], medications["Glimora"], SyntheticInteractionDescription),
-            new(medications["Halvexin"], medications["Jurvane"], SyntheticInteractionDescription),
-            new(medications["Brimexa"], medications["Kestrolin"], SyntheticInteractionDescription),
+            new(medications["Avelorin"], medications["Corvantil"], SeedNames.InteractionDescriptionAr, SyntheticInteractionDescription),
+            new(medications["Fenquira"], medications["Glimora"], SeedNames.InteractionDescriptionAr, SyntheticInteractionDescription),
+            new(medications["Halvexin"], medications["Jurvane"], SeedNames.InteractionDescriptionAr, SyntheticInteractionDescription),
+            new(medications["Brimexa"], medications["Kestrolin"], SeedNames.InteractionDescriptionAr, SyntheticInteractionDescription),
         ];
         db.DrugInteractions.AddRange(interactions);
 

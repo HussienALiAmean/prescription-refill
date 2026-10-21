@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AlertComponent } from './alert.component';
 import { EmptyStateComponent } from './empty-state.component';
+import { provideI18nTesting } from '../../core/i18n/testing';
 
 @Component({
   imports: [AlertComponent, EmptyStateComponent],
@@ -16,6 +17,9 @@ import { EmptyStateComponent } from './empty-state.component';
 class HostComponent {}
 
 describe('shared UI (redesign)', () => {
+  // English, so these assertions keep their meaning with the Arabic default (spec 005 SC-010).
+  beforeEach(() => TestBed.configureTestingModule({ providers: provideI18nTesting() }));
+
   it('gives each alert kind its own decorative icon', () => {
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();

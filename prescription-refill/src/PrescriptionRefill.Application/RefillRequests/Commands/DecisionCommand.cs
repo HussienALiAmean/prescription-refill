@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using PrescriptionRefill.Application.Abstractions;
 using PrescriptionRefill.Application.Common;
+using PrescriptionRefill.Application.Localization;
 using PrescriptionRefill.Application.RefillRequests.Dtos;
 using PrescriptionRefill.Domain.RefillRequests;
 
@@ -9,10 +10,13 @@ namespace PrescriptionRefill.Application.RefillRequests.Commands;
 /// <summary>
 /// Shared orchestration for approve and deny: load current stored data, let the Domain decide at
 /// <c>now</c>, and commit with one <c>SaveChangesAsync</c> (one transaction, both row versions
-/// checked). Logs identifiers only (constitution Principle VI).
+/// checked). Logs identifiers only (constitution Principle VI). Approval re-evaluates every rule
+/// against the data loaded here, inside this unit of work, as before (constitution Principle III);
+/// <paramref name="language"/> only selects response text.
 /// </summary>
 public abstract class DecisionCommand(
     RefillDecisionContextLoader loader,
+    LocalizedDtoBuilder dtos,
     IRefillDbContext db,
     IRequestNotifier notifier,
     TimeProvider clock,
@@ -22,7 +26,12 @@ public abstract class DecisionCommand(
 
     protected abstract DecisionResult Decide(RefillDecisionContext context, string? note, DateTimeOffset now);
 
-    public async Task<DecisionOutcome> ExecuteAsync(int requestId, string? note, CancellationToken cancellationToken)
+    /// <remarks>
+    /// The success response is built from the entities this command committed (the same values as
+    /// before 005), with names and texts read for <paramref name="language"/> after the commit and
+    /// notification. That read changes neither the transaction nor the notification order.
+    /// </remarks>
+    public async Task<DecisionOutcome> ExecuteAsync(int requestId, string? note, Language language, CancellationToken cancellationToken)
     {
         var context = await loader.LoadAsync(requestId, cancellationToken);
         if (context is null)
@@ -34,12 +43,13 @@ public abstract class DecisionCommand(
         switch (result)
         {
             case DecisionResult.InvalidNote invalid:
-                return new DecisionOutcome.InvalidNote(invalid.Message);
+                return new DecisionOutcome.InvalidNote(invalid.Error);
             case DecisionResult.AlreadyDecided decided:
                 return new DecisionOutcome.AlreadyDecided(decided.Status);
             case DecisionResult.Blocked blocked:
                 logger.LogInformation("Refill request {RequestId} {Action} blocked by rules", requestId, Action);
-                return new DecisionOutcome.Blocked(blocked.Evaluation.ToDto());
+                return new DecisionOutcome.Blocked(
+                    await dtos.EvaluationAsync(blocked.Evaluation, context.Request.Prescription, language, cancellationToken));
         }
 
         try
@@ -54,16 +64,17 @@ public abstract class DecisionCommand(
 
         logger.LogInformation("Refill request {RequestId} {Action} committed", requestId, Action);
         await notifier.NotifyAfterCommitAsync(logger, requestId, RequestChange.Decided);
-        return new DecisionOutcome.Succeeded(context.ToDetailDto(evaluation: null));
+        return new DecisionOutcome.Succeeded(await dtos.DetailAsync(context, evaluation: null, language, cancellationToken));
     }
 }
 
 public sealed class ApproveRefillRequest(
     RefillDecisionContextLoader loader,
+    LocalizedDtoBuilder dtos,
     IRefillDbContext db,
     IRequestNotifier notifier,
     TimeProvider clock,
-    ILogger<ApproveRefillRequest> logger) : DecisionCommand(loader, db, notifier, clock, logger)
+    ILogger<ApproveRefillRequest> logger) : DecisionCommand(loader, dtos, db, notifier, clock, logger)
 {
     protected override string Action => "approval";
 
@@ -73,10 +84,11 @@ public sealed class ApproveRefillRequest(
 
 public sealed class DenyRefillRequest(
     RefillDecisionContextLoader loader,
+    LocalizedDtoBuilder dtos,
     IRefillDbContext db,
     IRequestNotifier notifier,
     TimeProvider clock,
-    ILogger<DenyRefillRequest> logger) : DecisionCommand(loader, db, notifier, clock, logger)
+    ILogger<DenyRefillRequest> logger) : DecisionCommand(loader, dtos, db, notifier, clock, logger)
 {
     protected override string Action => "denial";
 

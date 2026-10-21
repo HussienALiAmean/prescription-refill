@@ -15,6 +15,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { Observable, Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { reloadOnChanges } from '../../../core/realtime/reload-triggers';
 import { ApiProblem } from '../../../shared/http/problem-details';
 import { InstantComponent } from '../../../shared/time/instant.component';
@@ -33,18 +34,6 @@ type QueueState =
   | { kind: 'loading' }
   | { kind: 'error'; problem: ApiProblem }
   | { kind: 'loaded'; list: RefillRequestList };
-
-const HEADINGS: Record<RequestStatus, string> = {
-  Pending: 'Pending refill requests',
-  Approved: 'Approved requests',
-  Denied: 'Denied requests',
-};
-
-const DESCRIPTIONS: Record<RequestStatus, string> = {
-  Pending: 'Requests awaiting a decision, oldest first. Open one to see its safety checks and decide.',
-  Approved: 'Approved requests, most recently decided first. Decisions are final and read-only.',
-  Denied: 'Denied requests, most recently decided first. Decisions are final and read-only.',
-};
 
 export const PAGE_SIZES = [10, 25, 50] as const;
 
@@ -74,6 +63,7 @@ export class RefillQueuePage {
   private readonly api = inject(RefillRequestsApi);
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
+  protected readonly t = inject(I18nService).t;
   private readonly resultsHeading = viewChild<ElementRef<HTMLElement>>('resultsHeading');
 
   /** Bound from the `status` query parameter; anything unknown means Pending. */
@@ -83,9 +73,9 @@ export class RefillQueuePage {
     const value = this.status();
     return REQUEST_STATUSES.find((s) => s === value) ?? 'Pending';
   });
-  protected readonly heading = computed(() => HEADINGS[this.selected()]);
-  protected readonly description = computed(() => DESCRIPTIONS[this.selected()]);
-  protected readonly emptyMessage = computed(() => `No ${this.selected().toLowerCase()} requests.`);
+  protected readonly heading = computed(() => this.t().queue.headings[this.selected()]);
+  protected readonly description = computed(() => this.t().queue.descriptions[this.selected()]);
+  protected readonly emptyMessage = computed(() => this.t().queue.empty(this.selected()));
 
   protected readonly state = signal<QueueState>({ kind: 'loading' });
   protected readonly reloading = signal(false);
@@ -144,7 +134,8 @@ export class RefillQueuePage {
     // Search text is sent once typing pauses (003 research R9).
     this.searches.pipe(debounceTime(300), takeUntilDestroyed()).subscribe(() => this.load());
 
-    // Any created or decided request can change this list (US4); the current page, search, and
+    // Any created or decided request can change this list (US4), and a language switch needs the
+    // server's names in the new language (spec 005 FR-012); the current status, page, search, and
     // page size are kept (003 FR-015).
     reloadOnChanges(() => this.load());
   }

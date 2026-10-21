@@ -34,7 +34,12 @@ public sealed class SeederTests(SqlServerDatabaseFixture database) : IClassFixtu
         Assert.Equal(6, await check.RefillRequests.CountAsync(r => r.Status == RefillRequestStatus.Pending));
         Assert.Equal(1, await check.RefillRequests.CountAsync(r => r.Status == RefillRequestStatus.Approved));
         Assert.Equal(1, await check.RefillRequests.CountAsync(r => r.Status == RefillRequestStatus.Denied));
-        Assert.True(await check.DrugInteractions.AllAsync(i => i.Description.Contains("Synthetic")));
+        Assert.True(await check.DrugInteractions.AllAsync(i => i.DescriptionEn.Contains("Synthetic")));
+        Assert.True(await check.DrugInteractions.AllAsync(i => i.DescriptionAr == SeedNames.InteractionDescriptionAr));
+
+        // Every seeded medication has its authored Arabic name (spec 005 FR-019).
+        var names = await check.Medications.ToDictionaryAsync(m => m.NameEn, m => m.NameAr);
+        Assert.Equal(SeedNames.Medications.ToDictionary(n => n.En, n => n.Ar), names);
 
         // Scenario 7's approval used one of Avery's four refills (data-model "Seed Scenarios").
         var avery = await check.Prescriptions.SingleAsync(p => p.Patient.FullName == "Avery Lindqvist" && p.IsActive);

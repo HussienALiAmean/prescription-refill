@@ -31,6 +31,8 @@
       transparent 70%
     ),
     radial-gradient(circle calc($ambient-light-size-secondary / 2) at 88% 22%, rgba($glow-indigo, 0.24), transparent 70%);
+  // Dimmer in Dark, so the light never competes with the dark sheet (research R12).
+  opacity: var(--glow-opacity);
   transition:
     --light-x $duration-slow $easing-standard,
     --light-y $duration-slow $easing-standard;
@@ -49,17 +51,38 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: rgba($canvas-bg, 0.86);
+    background: var(--canvas-header-bg);
     backdrop-filter: saturate(140%) blur(10px);
   }
 }
 
 .app-header-inner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: $space-3;
   min-height: $header-height;
+  padding-block: $space-2;
+}
+
+// Connection state plus the language and theme controls (spec 005 ui-contract "Header controls").
+// Below the tablet width they wrap onto a second header row.
+.header-tools,
+.preferences {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}
+
+.header-tools {
+  justify-content: flex-end;
+
+  @media (max-width: ($breakpoint-md - 1px)) {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
 }
 
 .brand {

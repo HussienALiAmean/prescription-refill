@@ -37,8 +37,16 @@ public sealed class SqlServerDatabaseFixture : IAsyncLifetime
         }
     }
 
+    /// <summary>
+    /// Seconds allowed per command. CREATE DATABASE can take longer than the 30-second default when
+    /// many test classes create their databases in parallel on a local instance.
+    /// </summary>
+    public const int CommandTimeoutSeconds = 180;
+
     public RefillDbContext CreateContext() =>
-        new(new DbContextOptionsBuilder<RefillDbContext>().UseSqlServer(ConnectionString).Options);
+        new(new DbContextOptionsBuilder<RefillDbContext>()
+            .UseSqlServer(ConnectionString, sql => sql.CommandTimeout(CommandTimeoutSeconds))
+            .Options);
 
     public async Task DisposeAsync()
     {

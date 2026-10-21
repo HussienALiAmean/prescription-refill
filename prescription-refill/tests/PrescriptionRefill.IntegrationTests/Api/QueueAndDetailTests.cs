@@ -1,6 +1,10 @@
 using System.Net;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using PrescriptionRefill.Application.RefillRequests;
+using PrescriptionRefill.Infrastructure.Persistence;
 using PrescriptionRefill.IntegrationTests.Infrastructure;
 using static PrescriptionRefill.IntegrationTests.Infrastructure.Json;
 
@@ -127,6 +131,39 @@ public sealed partial class QueueAndDetailTests(SqlServerDatabaseFixture databas
                 Assert.EndsWith("+00:00", match.Groups[1].Value);
             }
         }
+    }
+
+    /// <summary>
+    /// Spec 005 T037 and research R3 (merge rule): every safety value in a detail response comes
+    /// from the one rule read its evaluation used, even when another change commits before the
+    /// display read that supplies the localized names.
+    /// </summary>
+    [Theory]
+    [InlineData("ar")]
+    [InlineData("en")]
+    public async Task Detail_facts_and_evaluation_come_from_the_same_read(string language)
+    {
+        var between = new BetweenReadsInterceptor(database.ConnectionString, RefillDecisionContextLoader.RuleReadTag);
+        using var api = new RefillApiFactory(database)
+        {
+            DefaultLanguage = language,
+            ConfigureServices = services =>
+                services.ConfigureDbContext<RefillDbContext>(options => options.AddInterceptors(between)),
+        };
+        var arranged = await _data.ArrangeAsync(api.Clock.GetUtcNow(), remainingRefills: 2);
+        between.RunOnceAfterTaggedRead($"UPDATE Prescriptions SET RemainingRefills = 0 WHERE Id = {arranged.PrescriptionId}");
+        var client = api.CreateClient();
+
+        var first = await ReadAsync(await client.GetAsync($"/api/refill-requests/{arranged.RequestId}"));
+
+        Assert.Equal(2, first["prescription"]!["remainingRefills"]!.GetValue<int>());
+        Assert.DoesNotContain(first["evaluation"]!["blockingReasons"]!.AsArray(), r => r!["code"]!.GetValue<string>() == "NO_REFILLS_REMAINING");
+        Assert.True(first["evaluation"]!["canApprove"]!.GetValue<bool>());
+
+        // The competing change did commit between the reads: the next detail shows it.
+        var second = await ReadAsync(await client.GetAsync($"/api/refill-requests/{arranged.RequestId}"));
+        Assert.Equal(0, second["prescription"]!["remainingRefills"]!.GetValue<int>());
+        Assert.Contains(second["evaluation"]!["blockingReasons"]!.AsArray(), r => r!["code"]!.GetValue<string>() == "NO_REFILLS_REMAINING");
     }
 
     [GeneratedRegex("\"\\w+At\":\"([^\"]+)\"")]

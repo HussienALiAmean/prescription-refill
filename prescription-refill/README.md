@@ -94,6 +94,29 @@ To start over, drop the database and seed again:
 dotnet ef database drop --force --project src/PrescriptionRefill.Infrastructure --startup-project src/PrescriptionRefill.Api
 ```
 
+**Arabic names in an existing database (feature 005).** The `BilingualReferenceData` migration keeps
+existing medication names and interaction descriptions as the English values. It fills the Arabic
+values for the seeded rows, and copies the English value into any other row. To get every authored
+Arabic name, either reseed a local demo database (drop it as above, then run `--seed` again; the
+seeder skips a database that already has data), or, for a database that must keep its data, apply a
+new data migration that ships the corrected values. The committed migration is never edited.
+
+### 3. AutoMapper license key (optional for development)
+
+Localized names are read with AutoMapper 16.2.0 under the free Lucky Penny Community License
+(eligibility and terms are recorded in
+[research R1](specs/005-bilingual-localization-themes/research.md)). Register for a key at Lucky
+Penny Software and keep it out of the repository, in user secrets or an environment variable:
+
+```bash
+dotnet user-secrets set "AutoMapper:LicenseKey" "<your key>" --project src/PrescriptionRefill.Api
+# or: export AutoMapper__LicenseKey="<your key>"
+```
+
+Without a key everything works: AutoMapper logs a license warning under
+`LuckyPennySoftware.AutoMapper.License`. Development, test, and evaluation use is allowed without a
+license (agreement section 4.4). Tests run without a key and filter that warning.
+
 ## Run
 
 ```bash
@@ -106,10 +129,24 @@ npm start                                             # app on http://localhost:
 The Angular dev server proxies `/api` and the live-update hub `/hubs` (WebSockets) to the API.
 Open two browser tabs to see a decision in one refresh the other.
 
+The app opens in **Arabic, right-to-left, Light** on a first visit, whatever the browser's language.
+The header has a language control (العربية / English) and a theme control (Light / Dark). Both
+choices are kept in this browser, independently of each other, and survive a reload.
+
 Create a request (API only):
 
 ```bash
 curl -X POST http://localhost:5080/api/refill-requests -H "content-type: application/json" -d '{"prescriptionId": 6}'
+```
+
+**Response language.** Every endpoint reads `Accept-Language`: `ar` (the default) or `en`, including
+regional variants such as `ar-SA` or `en-GB`; anything else gets Arabic. Responses carry
+`Content-Language`. A client that sends no header gets Arabic messages and medication names; send
+`Accept-Language: en` for the English output of earlier features. Codes, statuses, and field names
+are the same in both languages.
+
+```bash
+curl -H "Accept-Language: en" http://localhost:5080/api/refill-requests
 ```
 
 ## Tests
@@ -126,6 +163,9 @@ npm run test:ci                   # Karma + Jasmine, headless
   `RefillTests_<guid>` database per test class by applying the migrations, and drop it
   afterwards. Without a reachable SQL Server they fail with "SQL Server not available"; report
   them as not run.
+- Test classes run four at a time (`tests/PrescriptionRefill.IntegrationTests/xunit.runner.json`), so
+  parallel database creation does not time out on a local SQL Server. Test clients send
+  `Accept-Language: en` unless a test states another language.
 - Frontend tests use Chrome if installed, otherwise Microsoft Edge; set `CHROME_BIN` to use a
   specific Chromium-based browser.
 
@@ -142,6 +182,7 @@ specs/001-refill-request-review/        spec, plan, data model, API contract, ta
 specs/002-premium-ui-redesign/          UI redesign spec, plan, tasks, before/after screenshots
 specs/003-backend-pagination/           server-side paging and search: spec, plan, contract, tasks
 specs/004-creative-clinical-ui/         Creative Clinical UI spec, plan, contract, tasks, screenshots
+specs/005-bilingual-localization-themes/ Arabic/English and Light/Dark: spec, plan, contracts, tasks, screenshots
 ```
 
 ## How it works
@@ -159,5 +200,9 @@ specs/004-creative-clinical-ui/         Creative Clinical UI spec, plan, contrac
 - **Live updates**: after a change commits, SignalR sends a hint (`RequestUpdated`, request ID
   and change only) and other screens reload from the API.
 - **No caching** of request status, refill counts, or eligibility.
+- **Language and theme** are presentation only. The server resolves the request language from
+  `Accept-Language` and words messages from a typed catalog keyed by the unchanged codes; each
+  medication name and interaction description is selected in SQL for that language. The browser
+  keeps the language and theme choices; they never change a rule or a decision.
 
 API reference and error codes: [contracts/http-api.md](specs/001-refill-request-review/contracts/http-api.md).

@@ -7,6 +7,7 @@ import { RefillRequestsApi } from '../data/refill-requests.api';
 import { list, pagedList } from '../testing/fixtures';
 import { RefillQueuePage } from './refill-queue.page';
 import { FakeRefillEvents, provideFakeRefillEvents } from '../../../core/realtime/testing/fake-refill-events';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 describe('RefillQueuePage', () => {
   let api: jasmine.SpyObj<RefillRequestsApi>;
@@ -23,7 +24,7 @@ describe('RefillQueuePage', () => {
     events = new FakeRefillEvents();
     TestBed.configureTestingModule({
       imports: [RefillQueuePage],
-      providers: [provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(events)],
+      providers: [...provideI18nTesting(), provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(events)],
     });
   });
 

@@ -34,9 +34,21 @@ const ICONS = {
   ],
   search: ['M3 11a8 8 0 1 0 16 0a8 8 0 1 0-16 0', 'm21 21-4.3-4.3'],
   'search-x': ['m13.5 8.5-5 5', 'm8.5 8.5 5 5', 'M3 11a8 8 0 1 0 16 0a8 8 0 1 0-16 0', 'm21 21-4.3-4.3'],
+  moon: ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
   'shield-check': [
     'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z',
     'm9 12 2 2 4-4',
+  ],
+  sun: [
+    'M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0',
+    'M12 2v2',
+    'M12 20v2',
+    'm4.93 4.93 1.41 1.41',
+    'm17.66 17.66 1.41 1.41',
+    'M2 12h2',
+    'M20 12h2',
+    'm6.34 17.66-1.41 1.41',
+    'm19.07 4.93-1.41 1.41',
   ],
   user: ['M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2', 'M8 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0'],
   'wifi-off': [
@@ -53,6 +65,12 @@ const ICONS = {
 } satisfies Record<string, string[]>;
 
 export type IconName = keyof typeof ICONS;
+
+/**
+ * Icons that point along the reading direction; they mirror in right-to-left layouts. Every other
+ * icon (warning, check, info, pill, sun, moon, …) keeps its shape (spec 005 FR-014).
+ */
+const DIRECTIONAL: ReadonlySet<string> = new Set<IconName>(['arrow-left', 'chevron-left', 'chevron-right']);
 
 /**
  * Decorative outline icon (research R3). Always hidden from assistive technology: meaning is
@@ -87,7 +105,7 @@ export type IconName = keyof typeof ICONS;
       line-height: 0;
     }
   `,
-  host: { 'aria-hidden': 'true' },
+  host: { 'aria-hidden': 'true', '[class.icon-directional]': 'directional()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IconComponent {
@@ -95,4 +113,5 @@ export class IconComponent {
   readonly size = input(18);
 
   protected readonly paths = computed<readonly string[]>(() => ICONS[this.name() as IconName] ?? []);
+  protected readonly directional = computed(() => DIRECTIONAL.has(this.name()));
 }

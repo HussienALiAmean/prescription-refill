@@ -12,10 +12,11 @@ public sealed class DrugInteraction
     {
         MedicationA = null!;
         MedicationB = null!;
-        Description = null!;
+        DescriptionAr = null!;
+        DescriptionEn = null!;
     }
 
-    public DrugInteraction(Medication first, Medication second, string description)
+    public DrugInteraction(Medication first, Medication second, string descriptionAr, string descriptionEn)
     {
         ArgumentNullException.ThrowIfNull(first);
         ArgumentNullException.ThrowIfNull(second);
@@ -25,17 +26,14 @@ public sealed class DrugInteraction
             throw new ArgumentException("An interaction needs two different medications.", nameof(second));
         }
 
-        if (string.IsNullOrWhiteSpace(description) || description.Trim().Length > MaxDescriptionLength)
-        {
-            throw new ArgumentException($"Description is required and at most {MaxDescriptionLength} characters.", nameof(description));
-        }
+        DescriptionAr = ValidDescription(descriptionAr, nameof(descriptionAr));
+        DescriptionEn = ValidDescription(descriptionEn, nameof(descriptionEn));
 
         var swap = first.Id != 0 && second.Id != 0 && first.Id > second.Id;
         MedicationA = swap ? second : first;
         MedicationB = swap ? first : second;
         MedicationAId = MedicationA.Id;
         MedicationBId = MedicationB.Id;
-        Description = description.Trim();
     }
 
     public int Id { get; private set; }
@@ -48,10 +46,22 @@ public sealed class DrugInteraction
 
     public Medication MedicationB { get; private set; }
 
-    public string Description { get; private set; }
+    public string DescriptionAr { get; private set; }
+
+    public string DescriptionEn { get; private set; }
 
     /// <summary>True when this pair joins the two medications, in either order.</summary>
     public bool Joins(Medication one, Medication other) =>
         (MedicationA.IsSameAs(one) && MedicationB.IsSameAs(other))
         || (MedicationA.IsSameAs(other) && MedicationB.IsSameAs(one));
+
+    private static string ValidDescription(string description, string parameter)
+    {
+        if (string.IsNullOrWhiteSpace(description) || description.Trim().Length > MaxDescriptionLength)
+        {
+            throw new ArgumentException($"Description is required and at most {MaxDescriptionLength} characters.", parameter);
+        }
+
+        return description.Trim();
+    }
 }

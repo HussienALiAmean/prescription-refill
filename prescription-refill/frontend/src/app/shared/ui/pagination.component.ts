@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { IconComponent } from './icon.component';
 
 let nextId = 0;
@@ -12,13 +13,13 @@ let nextId = 0;
   imports: [IconComponent],
   template: `
     @if (total() > 0) {
-      <nav class="pagination" aria-label="Pagination">
+      <nav class="pagination" [attr.aria-label]="t().pagination.label">
         <p class="range tabular" aria-live="polite">
-          Showing <strong>{{ from() }}–{{ to() }}</strong> of <strong>{{ total() }}</strong>
+          {{ t().pagination.showing }} <strong>{{ from() }}–{{ to() }}</strong> {{ t().pagination.of }} <strong>{{ total() }}</strong>
         </p>
 
         <div class="size">
-          <label [for]="sizeId">Rows per page</label>
+          <label [for]="sizeId">{{ t().pagination.rowsPerPage }}</label>
           <select [id]="sizeId" [value]="pageSize()" (change)="onSize($event)">
             @for (size of pageSizes(); track size) {
               <option [value]="size" [selected]="size === pageSize()">{{ size }}</option>
@@ -34,16 +35,16 @@ let nextId = 0;
             (click)="pageChange.emit(page() - 1)"
           >
             <app-icon name="chevron-left" [size]="16" />
-            Previous
+            {{ t().pagination.previous }}
           </button>
-          <span class="position tabular">Page {{ page() }} of {{ pageCount() }}</span>
+          <span class="position tabular">{{ t().pagination.position(page(), pageCount()) }}</span>
           <button
             type="button"
             class="btn btn-sm"
             [disabled]="page() >= pageCount()"
             (click)="pageChange.emit(page() + 1)"
           >
-            Next
+            {{ t().pagination.next }}
             <app-icon name="chevron-right" [size]="16" />
           </button>
         </div>
@@ -112,13 +113,15 @@ let nextId = 0;
     }
     @media (min-width: $breakpoint-md) {
       .size {
-        margin-left: auto;
+        margin-inline-start: auto;
       }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaginationComponent {
+  protected readonly t = inject(I18nService).t;
+
   readonly page = input(1);
   readonly pageSize = input(10);
   readonly total = input(0);

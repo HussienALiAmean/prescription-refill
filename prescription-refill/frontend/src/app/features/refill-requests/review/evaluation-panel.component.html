@@ -6,20 +6,20 @@
   aria-labelledby="evaluation-heading"
 >
   <div class="panel-header">
-    <h2 id="evaluation-heading">Safety checks</h2>
+    <h2 id="evaluation-heading">{{ t().evaluation.heading }}</h2>
     <app-status-badge [label]="summary().label" [tone]="summary().tone" />
   </div>
 
   @if (evaluation().blockingReasons.length > 0) {
-    <app-alert kind="danger" heading="Approval blocked">
-      <p class="state-label">Prevents approval. Deny remains available.</p>
+    <app-alert kind="danger" [heading]="t().common.approvalBlocked">
+      <p class="state-label">{{ t().evaluation.preventsApproval }}</p>
       <ul class="reasons">
         @for (reason of evaluation().blockingReasons; track reason.code) {
           <li>
             <span class="reason-label">{{ blockingLabel(reason.code) }}</span>
             <span>{{ reason.message }}</span>
             @if (reason.eligibleAt) {
-              <span class="eligible tabular">Eligible from <app-instant [value]="reason.eligibleAt" />.</span>
+              <span class="eligible tabular">{{ t().evaluation.eligibleFrom }} <app-instant [value]="reason.eligibleAt" />.</span>
             }
           </li>
         }
@@ -28,7 +28,7 @@
   }
 
   @if (evaluation().warnings.length > 0) {
-    <app-alert kind="warning" heading="Warnings — clinical review required. They do not block approval.">
+    <app-alert kind="warning" [heading]="t().evaluation.warningsHeading">
       <ul class="reasons">
         @for (warning of evaluation().warnings; track warning.code + warning.medicationName) {
           <li>
@@ -44,16 +44,16 @@
   }
 
   @if (clear()) {
-    <app-alert kind="success" heading="No issues found">
-      No blocking rules apply. No allergy or interaction warnings. Review the details before deciding.
+    <app-alert kind="success" [heading]="t().common.noIssuesFound">
+      {{ t().evaluation.clearBody }}
     </app-alert>
   } @else {
     <ul class="checks-clear">
       @if (evaluation().blockingReasons.length === 0) {
-        <li><app-icon name="check-circle" [size]="16" /> No blocking rules apply.</li>
+        <li><app-icon name="check-circle" [size]="16" /> {{ t().evaluation.noBlockingRules }}</li>
       }
       @if (evaluation().warnings.length === 0) {
-        <li><app-icon name="check-circle" [size]="16" /> No allergy or interaction warnings.</li>
+        <li><app-icon name="check-circle" [size]="16" /> {{ t().evaluation.noWarnings }}</li>
       }
     </ul>
   }
@@ -62,17 +62,16 @@
     <p class="stale-notice">
       <app-icon name="clock" [size]="14" />
       <span>
-        Evaluated <app-instant [value]="evaluation().evaluatedAt" />. This may be out of date; the server checks every
-        rule again when you approve.
+        {{ t().evaluation.evaluatedPrefix }} <app-instant [value]="evaluation().evaluatedAt" />{{ t().evaluation.evaluatedSuffix }}
       </span>
     </p>
     <button type="button" class="btn btn-sm" [disabled]="refreshing()" (click)="refresh.emit()">
       @if (refreshing()) {
         <span class="spinner" aria-hidden="true"></span>
-        Refreshing…
+        {{ t().common.refreshing }}
       } @else {
         <app-icon name="refresh" [size]="16" />
-        Refresh
+        {{ t().common.refresh }}
       }
     </button>
   </div>

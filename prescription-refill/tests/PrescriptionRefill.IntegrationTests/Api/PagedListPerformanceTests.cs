@@ -31,7 +31,7 @@ public sealed class PagedListPerformanceTests(SqlServerDatabaseFixture database,
         await using var db = _data.NewContext();
         var now = _api.Clock.GetUtcNow();
         var medications = Enumerable.Range(0, PrescriptionsPerPatient)
-            .Select(i => new Medication($"{medicationPrefix}{i:00}"))
+            .Select(i => new Medication(TestData.ArabicNameFor($"{medicationPrefix}{i:00}"), $"{medicationPrefix}{i:00}"))
             .ToList();
         db.Medications.AddRange(medications);
 

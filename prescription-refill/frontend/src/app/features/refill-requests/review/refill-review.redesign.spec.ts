@@ -7,6 +7,7 @@ import { RefillRequestsApi } from '../data/refill-requests.api';
 import { blockedEvaluation, detail, evaluation } from '../testing/fixtures';
 import { DecisionFormComponent } from './decision-form.component';
 import { RefillReviewPage } from './refill-review.page';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 /** True when `a` comes before `b` in document order. */
 const precedes = (a: Element | null, b: Element | null) =>
@@ -29,7 +30,7 @@ describe('RefillReviewPage (redesign: safety-first layout and feedback)', () => 
     api = jasmine.createSpyObj<RefillRequestsApi>('RefillRequestsApi', ['list', 'get', 'approve', 'deny']);
     TestBed.configureTestingModule({
       imports: [RefillReviewPage],
-      providers: [provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(new FakeRefillEvents())],
+      providers: [...provideI18nTesting(), provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(new FakeRefillEvents())],
     });
   });
 

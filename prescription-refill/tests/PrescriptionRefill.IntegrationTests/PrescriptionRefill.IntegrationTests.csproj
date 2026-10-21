@@ -23,4 +23,11 @@
     <ProjectReference Include="..\..\src\PrescriptionRefill.Infrastructure\PrescriptionRefill.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Each test class creates its own SQL Server database. Running every class at once on a
+         20-thread machine timed out CREATE DATABASE and the 1 s paging budget on a local
+         instance, so classes run 4 at a time (spec 005 T040). -->
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

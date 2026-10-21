@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PaginationComponent } from './pagination.component';
+import { provideI18nTesting } from '../../core/i18n/testing';
 
 describe('PaginationComponent', () => {
+  // English, so these assertions keep their meaning with the Arabic default (spec 005 SC-010).
+  beforeEach(() => TestBed.configureTestingModule({ providers: provideI18nTesting() }));
+
   let fixture: ComponentFixture<PaginationComponent>;
   let el: HTMLElement;
 

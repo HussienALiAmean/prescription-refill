@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using PrescriptionRefill.Application.Localization;
 using PrescriptionRefill.Application.RefillRequests.Dtos;
 using PrescriptionRefill.Domain.RefillRequests;
 
@@ -6,50 +7,51 @@ namespace PrescriptionRefill.Api.Errors;
 
 /// <summary>
 /// The contract's error table (contracts/http-api.md "Errors"), in one place. Every response is
-/// ProblemDetails with a stable <c>code</c> extension.
+/// ProblemDetails with a stable <c>code</c> extension. Only <c>title</c>, <c>detail</c>, and the
+/// <c>errors</c> texts depend on the request language (spec 005 FR-002, FR-011).
 /// </summary>
 internal static class ProblemResults
 {
-    public static ProblemHttpResult NotFound(string what) =>
-        Problem(StatusCodes.Status404NotFound, ErrorCodes.NotFound, $"The {what} was not found.");
+    public static ProblemHttpResult NotFound(string title) =>
+        Problem(StatusCodes.Status404NotFound, ErrorCodes.NotFound, title);
 
-    public static ProblemHttpResult Validation(string field, string message) =>
+    public static ProblemHttpResult Validation(IAppText text, string field, string message) =>
         Problem(
             StatusCodes.Status400BadRequest,
             ErrorCodes.ValidationFailed,
-            "The request is not valid.",
+            text.ValidationTitle,
             extensions: new() { ["errors"] = new Dictionary<string, string[]> { [field] = [message] } });
 
-    public static ProblemHttpResult AlreadyDecided(int requestId, RefillRequestStatus status) =>
+    public static ProblemHttpResult AlreadyDecided(IAppText text, int requestId, RefillRequestStatus status) =>
         Problem(
             StatusCodes.Status409Conflict,
             ErrorCodes.RequestAlreadyDecided,
-            "The request has already been decided.",
-            "Decided requests cannot be changed.",
+            text.AlreadyDecidedTitle,
+            text.AlreadyDecidedDetail,
             new() { ["requestId"] = requestId, ["requestStatus"] = status.ToString() });
 
-    public static ProblemHttpResult PendingRequestExists(int prescriptionId) =>
+    public static ProblemHttpResult PendingRequestExists(IAppText text, int prescriptionId) =>
         Problem(
             StatusCodes.Status409Conflict,
             ErrorCodes.PendingRequestExists,
-            "The prescription already has a pending refill request.",
-            "Decide the existing request before creating another.",
+            text.PendingRequestExistsTitle,
+            text.PendingRequestExistsDetail,
             new() { ["prescriptionId"] = prescriptionId });
 
-    public static ProblemHttpResult ConcurrencyConflict(int requestId) =>
+    public static ProblemHttpResult ConcurrencyConflict(IAppText text, int requestId) =>
         Problem(
             StatusCodes.Status409Conflict,
             ErrorCodes.ConcurrencyConflict,
-            "The request changed while your decision was being saved.",
-            "No changes were saved. Reload the request and decide again.",
+            text.ConcurrencyConflictTitle,
+            text.ConcurrencyConflictDetail,
             new() { ["requestId"] = requestId });
 
-    public static ProblemHttpResult ApprovalBlocked(int requestId, EvaluationDto evaluation) =>
+    public static ProblemHttpResult ApprovalBlocked(IAppText text, int requestId, EvaluationDto evaluation) =>
         Problem(
             StatusCodes.Status422UnprocessableEntity,
             ErrorCodes.ApprovalBlocked,
-            "Approval is blocked.",
-            "The request cannot be approved based on current data. It can still be denied.",
+            text.ApprovalBlockedTitle,
+            text.ApprovalBlockedDetail,
             new() { ["requestId"] = requestId, ["evaluation"] = evaluation });
 
     private static ProblemHttpResult Problem(

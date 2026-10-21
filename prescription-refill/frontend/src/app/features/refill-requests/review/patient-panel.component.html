@@ -1,72 +1,73 @@
+<!-- Recorded text (name, dosage) and reference names keep their own direction (spec 005 FR-015). -->
 <section class="card panel" aria-labelledby="patient-heading">
-  <h2 id="patient-heading" class="panel-eyebrow">Patient</h2>
+  <h2 id="patient-heading" class="panel-eyebrow">{{ t().patient.heading }}</h2>
   <div class="patient">
     <span class="patient-avatar" aria-hidden="true">{{ patient().fullName.charAt(0) }}</span>
     <div>
-      <p class="patient-name">{{ patient().fullName }}</p>
+      <p class="patient-name" dir="auto">{{ patient().fullName }}</p>
       <p class="patient-dob">
         <app-icon name="calendar" [size]="14" />
-        <span>Date of birth <time [attr.datetime]="patient().dateOfBirth">{{ dateOfBirth() }}</time></span>
+        <span>{{ t().patient.dateOfBirth }} <time [attr.datetime]="patient().dateOfBirth">{{ dateOfBirth() }}</time></span>
       </p>
     </div>
   </div>
 
-  <h3 class="subheading">Recorded allergies</h3>
+  <h3 class="subheading">{{ t().patient.allergies }}</h3>
   @if (patient().allergies.length > 0) {
     <ul class="chips">
       @for (allergy of patient().allergies; track allergy) {
         <li class="chip chip-allergy">
           <app-icon name="alert-triangle" [size]="14" />
-          {{ allergy }}
+          <bdi>{{ allergy }}</bdi>
         </li>
       }
     </ul>
   } @else {
-    <p class="muted none">None recorded</p>
+    <p class="muted none">{{ t().patient.noAllergies }}</p>
   }
 </section>
 
 <section class="card panel" aria-labelledby="prescription-heading">
-  <h2 id="prescription-heading" class="panel-eyebrow">Requested prescription</h2>
+  <h2 id="prescription-heading" class="panel-eyebrow">{{ t().patient.requestedPrescription }}</h2>
   <p class="rx-name">
     <app-icon name="pill" [size]="18" />
-    {{ prescription().medicationName }}
+    <bdi>{{ prescription().medicationName }}</bdi>
   </p>
-  <p class="rx-dosage">{{ prescription().dosage }}</p>
+  <p class="rx-dosage" dir="auto">{{ prescription().dosage }}</p>
   <dl class="facts facts-grid">
     <div>
-      <dt>Days supply</dt>
+      <dt>{{ t().patient.daysSupply }}</dt>
       <dd class="tabular">{{ prescription().daysSupply }}</dd>
     </div>
     <div>
-      <dt>Remaining refills</dt>
+      <dt>{{ t().patient.remainingRefills }}</dt>
       <dd class="tabular">{{ prescription().remainingRefills }}</dd>
     </div>
     <div class="span-2">
-      <dt>Last filled</dt>
+      <dt>{{ t().patient.lastFilled }}</dt>
       <dd class="tabular"><app-instant [value]="prescription().lastFilledAt" /></dd>
     </div>
   </dl>
 </section>
 
 <section class="card panel" aria-labelledby="active-heading">
-  <h2 id="active-heading" class="panel-eyebrow">Other active prescriptions</h2>
+  <h2 id="active-heading" class="panel-eyebrow">{{ t().patient.otherActive }}</h2>
   @if (activePrescriptions().length > 0) {
     <ul class="rx-list">
       @for (item of activePrescriptions(); track item.id) {
         <li class="rx-row">
           <div class="rx-main">
-            <span class="rx-row-name">{{ item.medicationName }}</span>
-            <span class="rx-row-dosage">{{ item.dosage }}</span>
+            <span class="rx-row-name" dir="auto">{{ item.medicationName }}</span>
+            <span class="rx-row-dosage" dir="auto">{{ item.dosage }}</span>
           </div>
           <div class="rx-side tabular">
-            <span>{{ item.remainingRefills }} {{ item.remainingRefills === 1 ? 'refill' : 'refills' }}</span>
-            <span>Last filled <app-instant [value]="item.lastFilledAt" /></span>
+            <span>{{ t().patient.refills(item.remainingRefills) }}</span>
+            <span>{{ t().patient.lastFilled }} <app-instant [value]="item.lastFilledAt" /></span>
           </div>
         </li>
       }
     </ul>
   } @else {
-    <p class="muted none">No other active prescriptions.</p>
+    <p class="muted none">{{ t().patient.noOtherActive }}</p>
   }
 </section>

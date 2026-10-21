@@ -2,9 +2,11 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PrescriptionRefill.Api.Endpoints;
 using PrescriptionRefill.Api.Errors;
+using PrescriptionRefill.Api.Localization;
 using PrescriptionRefill.Api.Realtime;
 using PrescriptionRefill.Application.Abstractions;
 using PrescriptionRefill.Application;
+using PrescriptionRefill.Application.Mapping;
 using PrescriptionRefill.Infrastructure;
 using PrescriptionRefill.Infrastructure.Persistence;
 using PrescriptionRefill.Infrastructure.Seeding;
@@ -15,7 +17,7 @@ var connectionString = builder.Configuration.GetConnectionString("RefillDb")
     ?? throw new InvalidOperationException("Connection string 'RefillDb' is not configured.");
 
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration[LocalizedProjections.LicenseKeySetting]);
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
@@ -29,6 +31,13 @@ builder.Services.AddProblemDetails(options =>
                 StatusCodes.Status404NotFound => ErrorCodes.NotFound,
                 _ => ErrorCodes.UnexpectedError,
             };
+
+            // Localized titles for framework problems; English keeps the framework's own title.
+            if (context.ProblemDetails.Status is { } status
+                && RequestLanguage.Text(context.HttpContext).FrameworkProblemTitle(status) is { } title)
+            {
+                context.ProblemDetails.Title = title;
+            }
         }
     });
 builder.Services.AddExceptionHandler<UnexpectedErrorHandler>();
@@ -50,6 +59,9 @@ if (args.Contains("--seed"))
     return;
 }
 
+// First, so every response, including framework and exception problems, has a resolved language
+// and Content-Language (spec 005 research R4).
+app.UseRequestLocalization(RequestLanguage.Options());
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 

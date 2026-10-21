@@ -63,7 +63,7 @@
   &.is-clear ::ng-deep .alert-success {
     background: $color-surface-subtle;
     border-color: $color-border;
-    border-left-color: $color-accent;
+    border-inline-start-color: $color-accent;
 
     .alert-icon {
       color: $color-accent;
@@ -339,7 +339,7 @@
 
   @media (min-width: $breakpoint-sm) {
     align-items: flex-end;
-    text-align: right;
+    text-align: end;
   }
 }
 
@@ -368,7 +368,7 @@
   }
 
   app-status-badge {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 }
 
@@ -404,7 +404,7 @@
 .note {
   margin: $space-1 0 0;
   padding: $space-3 $space-4;
-  border-left: 3px solid $color-border-strong;
+  border-inline-start: 3px solid $color-border-strong;
   background: $color-surface-subtle;
   border-radius: 0 $radius-sm $radius-sm 0;
   font-weight: $font-weight-regular;

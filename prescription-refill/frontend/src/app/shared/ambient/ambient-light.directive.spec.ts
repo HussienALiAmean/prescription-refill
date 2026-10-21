@@ -1,6 +1,7 @@
 import { Component, NgZone } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AmbientLightDirective } from './ambient-light.directive';
+import { provideI18nTesting } from '../../core/i18n/testing';
 
 @Component({
   imports: [AmbientLightDirective],
@@ -89,7 +90,7 @@ describe('AmbientLightDirective', () => {
     });
     spyOn(window, 'cancelAnimationFrame').and.callFake((id: number) => frames.delete(id));
 
-    TestBed.configureTestingModule({ imports: [HostComponent] });
+    TestBed.configureTestingModule({ providers: provideI18nTesting(), imports: [HostComponent] });
   });
 
   it('enables ambient mode only for fine, hover-capable pointers without reduced motion', () => {
