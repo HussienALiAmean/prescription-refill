@@ -1,6 +1,6 @@
 <header class="page-header">
   <div>
-    <p class="eyebrow">{{ selected() === 'Pending' ? 'Work queue' : 'History' }}</p>
+    <p class="eyebrow">{{ selected() === 'Pending' ? t().queue.eyebrowQueue : t().queue.eyebrowHistory }}</p>
     <h1>{{ heading() }}</h1>
     <p class="page-description">{{ description() }}</p>
   </div>
@@ -11,7 +11,7 @@
       } @else {
         <app-icon name="refresh" [size]="16" />
       }
-      Refresh
+      {{ t().common.refresh }}
     </button>
   </div>
 </header>
@@ -21,13 +21,14 @@
     <app-status-filter [value]="selected()" [count]="list() ? counts().total : null" (changed)="select($event)" />
 
     <div class="search">
-      <label class="visually-hidden" for="queue-search">Search patient or medication</label>
+      <label class="visually-hidden" for="queue-search">{{ t().queue.search }}</label>
       <app-icon class="search-icon" name="search" [size]="16" />
       <input
         id="queue-search"
         type="search"
         autocomplete="off"
-        placeholder="Search patient or medication"
+        dir="auto"
+        [placeholder]="t().queue.search"
         [value]="query()"
         (input)="setQuery($any($event.target).value)"
       />
@@ -37,7 +38,7 @@
   @switch (state().kind) {
     @case ('loading') {
       <div class="skeleton-list" role="status">
-        <span class="visually-hidden">Loading requests…</span>
+        <span class="visually-hidden">{{ t().queue.loading }}</span>
         @for (row of [1, 2, 3, 4, 5]; track row) {
           <div class="skeleton-row" aria-hidden="true">
             <span class="skeleton avatar-skeleton"></span>
@@ -53,7 +54,7 @@
     }
     @case ('error') {
       <div class="panel-body">
-        <app-error-state message="The requests could not be loaded." (retry)="load()" />
+        <app-error-state [message]="t().queue.loadError" (retry)="load()" />
       </div>
     }
     @case ('loaded') {
@@ -61,50 +62,48 @@
         <div class="meta">
           <h2 #resultsHeading id="queue-results-heading" class="results-title" tabindex="-1" aria-live="polite">
             @if (query().trim()) {
-              {{ matchingCount() }} of {{ counts().total }}
-              {{ counts().total === 1 ? 'request matches' : 'requests match' }}
+              {{ t().queue.matches(matchingCount(), counts().total) }}
             } @else {
-              {{ counts().total }} {{ counts().total === 1 ? 'request' : 'requests' }}
+              {{ t().queue.count(counts().total) }}
             }
           </h2>
           @if (selected() === 'Pending') {
             <p class="checked tabular">
               <app-icon name="clock" [size]="14" />
               <span>
-                Checked against current data at <app-instant [value]="loaded.evaluatedAt" />. Open a request for its
-                latest evaluation.
+                {{ t().queue.checkedPrefix }} <app-instant [value]="loaded.evaluatedAt" />{{ t().queue.checkedSuffix }}
               </span>
             </p>
           }
         </div>
 
         @if (selected() === 'Pending' && loaded.summary && counts().total > 0) {
-          <ul class="summary" aria-label="Pending requests by safety status">
+          <ul class="summary" [attr.aria-label]="t().queue.summaryLabel">
             <li class="summary-item is-danger">
               <app-icon name="alert-octagon" [size]="16" />
-              <span><span class="summary-count tabular">{{ counts().blocked }}</span> approval blocked</span>
+              <span><span class="summary-count tabular">{{ counts().blocked }}</span> {{ t().queue.summaryBlocked }}</span>
             </li>
             <li class="summary-item is-warning">
               <app-icon name="alert-triangle" [size]="16" />
-              <span><span class="summary-count tabular">{{ counts().warnings }}</span> with warnings</span>
+              <span><span class="summary-count tabular">{{ counts().warnings }}</span> {{ t().queue.summaryWarnings }}</span>
             </li>
             <li class="summary-item is-success">
               <app-icon name="check-circle" [size]="16" />
-              <span><span class="summary-count tabular">{{ counts().clear }}</span> no issues found</span>
+              <span><span class="summary-count tabular">{{ counts().clear }}</span> {{ t().queue.summaryClear }}</span>
             </li>
           </ul>
         }
 
         @if (counts().total === 0) {
           <div class="panel-body">
-            <app-empty-state [heading]="'Nothing here yet'" [message]="emptyMessage()" icon="inbox" />
+            <app-empty-state [heading]="t().queue.emptyHeading" [message]="emptyMessage()" icon="inbox" />
           </div>
         } @else if (matchingCount() === 0) {
           <div class="panel-body">
-            <app-empty-state heading="No matching requests" [message]="'No requests match “' + query().trim() + '”.'" icon="search-x">
+            <app-empty-state [heading]="t().queue.noMatchHeading" [message]="t().queue.noMatch(query().trim())" icon="search-x">
               <button type="button" class="btn btn-sm" (click)="clearQuery()">
                 <app-icon name="x" [size]="16" />
-                Clear search
+                {{ t().queue.clearSearch }}
               </button>
             </app-empty-state>
           </div>
@@ -114,32 +113,33 @@
               <li class="queue-item" [class.queue-item--decided]="item.status !== 'Pending'" data-glow>
                 <span class="avatar" aria-hidden="true">{{ item.patientName.charAt(0) }}</span>
                 <a class="queue-link" [routerLink]="['/requests', item.id]">
-                  <span class="patient">{{ item.patientName }}</span>
+                  <!-- Recorded and reference text keeps its own direction (spec 005 FR-015). -->
+                  <span class="patient" dir="auto">{{ item.patientName }}</span>
                   <span class="medication">
                     <app-icon name="pill" [size]="14" />
-                    {{ item.medicationName }}
+                    <bdi>{{ item.medicationName }}</bdi>
                   </span>
                 </a>
                 <span class="requested tabular">
                   <app-icon name="clock" [size]="14" />
                   @if (item.decidedAt) {
-                    <span>Decided <app-instant [value]="item.decidedAt" /></span>
+                    <span>{{ t().common.decided }} <app-instant [value]="item.decidedAt" /></span>
                   } @else {
-                    <span>Requested <app-instant [value]="item.requestedAt" /></span>
+                    <span>{{ t().common.requested }} <app-instant [value]="item.requestedAt" /></span>
                   }
                 </span>
                 <span class="badges">
                   @if (item.status !== 'Pending') {
-                    <app-status-badge [label]="item.status" [tone]="tone(item.status)" />
+                    <app-status-badge [label]="t().status[item.status]" [tone]="tone(item.status)" />
                   }
                   @if (item.canApprove === false) {
-                    <app-status-badge label="Approval blocked" tone="danger" />
+                    <app-status-badge [label]="t().common.approvalBlocked" tone="danger" />
                   }
                   @if (item.hasWarnings) {
-                    <app-status-badge label="Warnings" tone="warning" />
+                    <app-status-badge [label]="t().common.warnings" tone="warning" />
                   }
                   @if (item.canApprove && !item.hasWarnings) {
-                    <app-status-badge label="No issues found" tone="neutral" />
+                    <app-status-badge [label]="t().common.noIssuesFound" tone="neutral" />
                   }
                 </span>
                 <app-icon class="chevron" name="chevron-right" [size]="18" />

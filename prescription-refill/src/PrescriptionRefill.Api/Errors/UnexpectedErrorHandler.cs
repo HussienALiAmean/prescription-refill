@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using PrescriptionRefill.Api.Localization;
 
 namespace PrescriptionRefill.Api.Errors;
 
@@ -21,7 +22,7 @@ internal sealed class UnexpectedErrorHandler(
             HttpContext = httpContext,
             ProblemDetails = new ProblemDetails
             {
-                Title = "An unexpected error occurred.",
+                Title = RequestLanguage.Text(httpContext).UnexpectedErrorTitle,
                 Status = StatusCodes.Status500InternalServerError,
                 Extensions = { ["code"] = ErrorCodes.UnexpectedError },
             },

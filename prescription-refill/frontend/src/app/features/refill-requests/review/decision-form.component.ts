@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, model, output } from '@angular/core';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { IconComponent } from '../../../shared/ui/icon.component';
 import { DecisionKind } from '../data/models';
 
@@ -16,6 +17,8 @@ import { DecisionKind } from '../data/models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DecisionFormComponent {
+  protected readonly t = inject(I18nService).t;
+
   readonly canApprove = input(true);
   readonly submitting = input(false);
   /** The decision currently in flight, if any, so the pressed button shows progress. */

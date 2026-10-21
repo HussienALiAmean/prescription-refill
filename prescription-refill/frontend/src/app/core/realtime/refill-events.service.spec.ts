@@ -1,5 +1,6 @@
 import { TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { HUB_CONNECTION_FACTORY, HubConnectionLike, RECONNECT_RETRY_MS, RefillEventsService, RequestUpdatedEvent } from './refill-events.service';
+import { provideI18nTesting } from '../i18n/testing';
 
 class FakeConnection implements HubConnectionLike {
   readonly handlers = new Map<string, (payload: unknown) => void>();
@@ -26,7 +27,7 @@ describe('RefillEventsService', () => {
   let connection: FakeConnection;
 
   function create(): RefillEventsService {
-    TestBed.configureTestingModule({ providers: [{ provide: HUB_CONNECTION_FACTORY, useValue: () => connection }] });
+    TestBed.configureTestingModule({ providers: [...provideI18nTesting(), { provide: HUB_CONNECTION_FACTORY, useValue: () => connection }] });
     return TestBed.inject(RefillEventsService);
   }
 

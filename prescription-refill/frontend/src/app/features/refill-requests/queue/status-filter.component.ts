@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { RequestStatus } from '../data/models';
 
 export const REQUEST_STATUSES: readonly RequestStatus[] = ['Pending', 'Approved', 'Denied'];
@@ -12,7 +13,7 @@ export const REQUEST_STATUSES: readonly RequestStatus[] = ['Pending', 'Approved'
   selector: 'app-status-filter',
   template: `
     <fieldset class="segmented">
-      <legend class="visually-hidden">Show</legend>
+      <legend class="visually-hidden">{{ t().statusFilter.legend }}</legend>
       @for (status of statuses; track status) {
         <label class="segment" [class.is-selected]="status === value()">
           <input
@@ -23,10 +24,11 @@ export const REQUEST_STATUSES: readonly RequestStatus[] = ['Pending', 'Approved'
             [checked]="status === value()"
             (change)="changed.emit(status)"
           />
-          <span>{{ status }}</span>
+          <!-- Translated label; the value stays the API's status name (spec 005 FR-002). -->
+          <span>{{ t().status[status] }}</span>
           @if (status === value() && count() !== null) {
             <span class="count tabular">
-              {{ count() }}<span class="visually-hidden"> requests</span>
+              {{ count() }}<span class="visually-hidden"> {{ t().statusFilter.requestsSuffix }}</span>
             </span>
           }
         </label>
@@ -106,4 +108,5 @@ export class StatusFilterComponent {
   readonly changed = output<RequestStatus>();
 
   protected readonly statuses = REQUEST_STATUSES;
+  protected readonly t = inject(I18nService).t;
 }

@@ -1,13 +1,42 @@
 <!doctype html>
-<html lang="en">
+<!-- Arabic, right-to-left, Light by default (spec 005 FR-007, FR-027); the boot script below
+     applies saved preferences before the first paint (FR-028). -->
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
   <meta charset="utf-8">
-  <title>Refill requests</title>
+  <title>طلبات إعادة الصرف</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Colors are designed and contrast-checked for a light scheme; opt out of forced dark modes. -->
-  <meta name="color-scheme" content="only light">
+  <!-- Set to the active theme (light or dark), so browsers never apply their own forced dark mode. -->
+  <meta name="color-scheme" content="light">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Same keys and validation as PreferencesStore (research R11). Invalid, missing, or blocked
+    // storage keeps the defaults above; the app then owns these attributes.
+    (function () {
+      var root = document.documentElement;
+      function read(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (e) {
+          return null;
+        }
+      }
+      var language = read('prx.language');
+      if (language === 'ar' || language === 'en') {
+        root.lang = language;
+        root.dir = language === 'ar' ? 'rtl' : 'ltr';
+        if (language === 'en') {
+          document.title = 'Refill requests';
+        }
+      }
+      var theme = read('prx.theme');
+      if (theme === 'light' || theme === 'dark') {
+        root.setAttribute('data-theme', theme);
+        document.querySelector('meta[name="color-scheme"]').setAttribute('content', theme);
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

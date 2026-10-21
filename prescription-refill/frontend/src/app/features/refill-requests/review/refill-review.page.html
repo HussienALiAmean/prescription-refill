@@ -1,12 +1,12 @@
 <a class="btn btn-ghost btn-sm back" routerLink="/requests">
   <app-icon name="arrow-left" [size]="16" />
-  Back to requests
+  {{ t().review.back }}
 </a>
 
 @switch (state().kind) {
   @case ('loading') {
     <div class="loading" role="status">
-      <span class="visually-hidden">Loading request…</span>
+      <span class="visually-hidden">{{ t().review.loading }}</span>
       <div class="skeleton-header" aria-hidden="true">
         <span class="skeleton line-xs"></span>
         <span class="skeleton line-title"></span>
@@ -26,9 +26,9 @@
   }
   @case ('error') {
     @if (loadProblem()?.code === 'not_found') {
-      <app-error-state heading="Request not found" message="This refill request was not found." (retry)="load()" />
+      <app-error-state [heading]="t().review.notFoundHeading" [message]="t().review.notFoundMessage" (retry)="load()" />
     } @else {
-      <app-error-state message="The request could not be loaded." (retry)="load()" />
+      <app-error-state [message]="t().review.loadError" (retry)="load()" />
     }
   }
   @case ('loaded') {
@@ -36,21 +36,21 @@
       <header class="review-header">
         <div>
           <div class="eyebrow-row">
-            <p class="eyebrow">Refill request #{{ current.id }}</p>
+            <p class="eyebrow">{{ t().review.eyebrow(current.id) }}</p>
             <app-status-badge
-              [label]="current.status"
+              [label]="t().status[current.status]"
               [tone]="current.status === 'Pending' ? 'info' : current.status === 'Approved' ? 'success' : 'danger'"
             />
           </div>
-          <h1>Refill request · {{ current.prescription.medicationName }}</h1>
+          <h1>{{ t().review.titlePrefix }} <bdi>{{ current.prescription.medicationName }}</bdi></h1>
           <p class="header-meta">
             <span class="meta-item">
               <app-icon name="user" [size]="14" />
-              {{ current.patient.fullName }}
+              <bdi>{{ current.patient.fullName }}</bdi>
             </span>
             <span class="meta-item tabular">
               <app-icon name="clock" [size]="14" />
-              <span>Requested <app-instant [value]="current.requestedAt" /></span>
+              <span>{{ t().common.requested }} <app-instant [value]="current.requestedAt" /></span>
             </span>
           </p>
         </div>
@@ -58,7 +58,7 @@
 
       <div class="notice" aria-live="polite">
         @if (notice(); as message) {
-          <app-alert [kind]="message.kind">{{ message.text }}</app-alert>
+          <app-alert [kind]="message.kind">{{ t().review.notices[message.key] }}</app-alert>
         }
       </div>
 

@@ -19,10 +19,27 @@ public static class WarningCodes
     public const string DrugInteraction = "DRUG_INTERACTION";
 }
 
-/// <param name="EligibleAt">Set only for <see cref="BlockingReasonCodes.TooEarly"/>.</param>
-public sealed record BlockingReason(string Code, string Message, DateTimeOffset? EligibleAt = null);
+/// <summary>Which stored timing value made <see cref="BlockingReasonCodes.InvalidPrescriptionData"/> apply (FR-027).</summary>
+public enum InvalidPrescriptionData
+{
+    DaysSupplyNotPositive,
+    LastFilledMissing,
+    LastFilledAfterEvaluation,
+}
 
-public sealed record Warning(string Code, string Message, string MedicationName, string? Description = null);
+/// <summary>
+/// A triggered blocking rule as a code plus the facts needed to explain it. Human-readable text is
+/// composed outside Domain in the requested language (spec 005 research R6).
+/// </summary>
+/// <param name="EligibleAt">Set only for <see cref="BlockingReasonCodes.TooEarly"/>.</param>
+/// <param name="InvalidData">Set only for <see cref="BlockingReasonCodes.InvalidPrescriptionData"/>.</param>
+public sealed record BlockingReason(string Code, DateTimeOffset? EligibleAt = null, InvalidPrescriptionData? InvalidData = null);
+
+/// <summary>A triggered warning and the reference data it is about; no text (spec 005 research R6).</summary>
+/// <param name="Medication">The requested medication for an allergy conflict; the other active
+/// medication for a drug interaction.</param>
+/// <param name="Interaction">Set only for <see cref="WarningCodes.DrugInteraction"/>.</param>
+public sealed record Warning(string Code, Medication Medication, DrugInteraction? Interaction = null);
 
 /// <summary>The outcome of evaluating every refill rule at one instant (FR-005).</summary>
 public sealed record RefillEvaluation(

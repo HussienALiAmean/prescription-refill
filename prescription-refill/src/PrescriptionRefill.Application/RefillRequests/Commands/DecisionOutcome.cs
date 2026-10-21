@@ -14,7 +14,7 @@ public abstract record DecisionOutcome
 
     public sealed record NotFound : DecisionOutcome;
 
-    public sealed record InvalidNote(string Message) : DecisionOutcome;
+    public sealed record InvalidNote(NoteError Error) : DecisionOutcome;
 
     public sealed record AlreadyDecided(RefillRequestStatus Status) : DecisionOutcome;
 

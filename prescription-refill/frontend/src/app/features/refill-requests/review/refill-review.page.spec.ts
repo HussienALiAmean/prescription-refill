@@ -7,6 +7,7 @@ import { RefillRequestsApi } from '../data/refill-requests.api';
 import { blockedEvaluation, decided, detail, evaluation } from '../testing/fixtures';
 import { RefillReviewPage } from './refill-review.page';
 import { FakeRefillEvents, provideFakeRefillEvents } from '../../../core/realtime/testing/fake-refill-events';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 describe('RefillReviewPage', () => {
   let api: jasmine.SpyObj<RefillRequestsApi>;
@@ -41,7 +42,7 @@ describe('RefillReviewPage', () => {
     events = new FakeRefillEvents();
     TestBed.configureTestingModule({
       imports: [RefillReviewPage],
-      providers: [provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(events)],
+      providers: [...provideI18nTesting(), provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(events)],
     });
   });
 

@@ -6,6 +6,7 @@ import { ListQuery, RefillRequestList, RefillRequestSummary, RequestStatus } fro
 import { RefillRequestsApi } from '../data/refill-requests.api';
 import { list, pagedList } from '../testing/fixtures';
 import { RefillQueuePage } from './refill-queue.page';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 /** `count` pending summaries in server order; names are unique so pages can be compared. */
 function items(count: number): RefillRequestSummary[] {
@@ -96,7 +97,7 @@ describe('RefillQueuePage (server-side counts, search, pagination)', () => {
     events = new FakeRefillEvents();
     TestBed.configureTestingModule({
       imports: [RefillQueuePage],
-      providers: [provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(events)],
+      providers: [...provideI18nTesting(), provideRouter([]), { provide: RefillRequestsApi, useValue: api }, provideFakeRefillEvents(events)],
     });
   });
 

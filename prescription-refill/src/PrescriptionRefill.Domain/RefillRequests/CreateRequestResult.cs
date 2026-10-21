@@ -10,5 +10,5 @@ public abstract record CreateRequestResult
     public sealed record Created(RefillRequest Request) : CreateRequestResult;
 
     /// <summary>The prescription is inactive; nothing was created.</summary>
-    public sealed record PrescriptionInactive(string Message) : CreateRequestResult;
+    public sealed record PrescriptionInactive : CreateRequestResult;
 }

@@ -4,13 +4,14 @@ import { TestBed } from '@angular/core/testing';
 import { ApiProblem } from '../../../shared/http/problem-details';
 import { detail, list } from '../testing/fixtures';
 import { RefillRequestsApi } from './refill-requests.api';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 describe('RefillRequestsApi', () => {
   let api: RefillRequestsApi;
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [...provideI18nTesting(), provideHttpClient(), provideHttpClientTesting()] });
     api = TestBed.inject(RefillRequestsApi);
     http = TestBed.inject(HttpTestingController);
   });

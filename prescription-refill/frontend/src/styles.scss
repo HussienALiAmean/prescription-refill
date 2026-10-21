@@ -1,4 +1,5 @@
 @use 'variables' as *;
+@use 'themes';
 
 *,
 *::before,
@@ -22,8 +23,27 @@
 
 html {
   font-size: 100%;
-  color-scheme: only light;
   -webkit-text-size-adjust: 100%;
+}
+
+// Typography per language (spec 005 research R13). `color-scheme` follows the theme (_themes.scss).
+:root {
+  --font-family: #{$font-stack-latin};
+  --font-family-display: #{$font-stack-latin-display};
+  --letter-spacing-tight: -0.015em;
+  --letter-spacing-caps: 0.06em;
+}
+
+:root[lang='ar'] {
+  --font-family: #{$font-stack-arabic};
+  --font-family-display: #{$font-stack-arabic};
+  --letter-spacing-tight: 0;
+  --letter-spacing-caps: 0;
+}
+
+// Arabic text inside an English page (the language switch) also keeps its letters joined.
+:lang(ar) {
+  letter-spacing: 0;
 }
 
 body {
@@ -83,6 +103,11 @@ a {
   }
 }
 
+// Directional icons (back arrow, chevrons) point along the reading direction (spec 005 FR-014).
+.icon-directional:dir(rtl) svg {
+  transform: scaleX(-1);
+}
+
 // Focus: a real outline (not a box-shadow) so it survives forced-colors mode. On the dark canvas
 // the teal outline is too dark, so canvas regions use the light canvas accent instead.
 :focus-visible {
@@ -102,6 +127,9 @@ a {
   background: $color-bg;
   border-radius: $radius-sheet $radius-sheet 0 0;
   box-shadow: $shadow-sheet;
+  // Separates the sheet from the canvas in Dark, where both are dark (research R12).
+  outline: 1px solid var(--sheet-border);
+  outline-offset: -1px;
 
   @media (max-width: $breakpoint-sm) {
     border-radius: $radius-sheet-sm $radius-sheet-sm 0 0;
@@ -227,7 +255,7 @@ a {
   width: 1em;
   height: 1em;
   border: 2px solid currentColor;
-  border-right-color: transparent;
+  border-inline-end-color: transparent;
   border-radius: $radius-pill;
   animation: spin 0.7s linear infinite;
   flex: none;
@@ -375,11 +403,16 @@ textarea {
 
 select {
   appearance: none;
-  padding-right: $space-6;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  padding-inline-end: $space-6;
+  background-image: var(--select-arrow-image);
   background-repeat: no-repeat;
   background-position: right $space-2 center;
   cursor: pointer;
+
+  // The arrow sits on the ending edge in either direction (spec 005 FR-014).
+  [dir='rtl'] & {
+    background-position: left $space-2 center;
+  }
 }
 
 textarea[aria-invalid='true'] {

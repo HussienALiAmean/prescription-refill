@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { FakeRefillEvents, provideFakeRefillEvents } from '../../../core/realtime/testing/fake-refill-events';
 import { ConnectionIndicatorComponent } from './connection-indicator.component';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 describe('ConnectionIndicatorComponent', () => {
   let events: FakeRefillEvents;
@@ -13,7 +14,7 @@ describe('ConnectionIndicatorComponent', () => {
 
   beforeEach(() => {
     events = new FakeRefillEvents();
-    TestBed.configureTestingModule({ providers: [provideFakeRefillEvents(events)] });
+    TestBed.configureTestingModule({ providers: [...provideI18nTesting(), provideFakeRefillEvents(events)] });
   });
 
   it('shows nothing while connected', () => {

@@ -30,7 +30,7 @@
   max-width: 24rem;
 
   input {
-    padding-left: 2.25rem;
+    padding-inline-start: 2.25rem;
     background: $color-surface;
   }
 
@@ -42,7 +42,7 @@
 .search-icon {
   position: absolute;
   top: 50%;
-  left: $space-3;
+  inset-inline-start: $space-3;
   transform: translateY(-50%);
   color: $color-text-subtle;
   pointer-events: none;
@@ -199,16 +199,25 @@
     .chevron {
       color: $color-accent;
       transform: translateX(2px);
+
+      // The nudge follows the reading direction (spec 005 FR-014).
+      :host-context([dir='rtl']) & {
+        transform: translateX(-2px);
+      }
     }
   }
 
-  // Keyboard focus: an outline around the whole row plus a left bar, a shape cue beyond color
-  // (004 FR-010). The link's overlay still makes the whole row the click target (002 R8).
+  // Keyboard focus: an outline around the whole row plus a bar on the starting edge, a shape cue
+  // beyond color (004 FR-010). The link's overlay still makes the whole row the click target (002 R8).
   &:has(.queue-link:focus-visible) {
     background: $color-accent-bg;
     outline: $focus-outline;
     outline-offset: -2px;
     box-shadow: inset 3px 0 0 $color-accent;
+
+    :host-context([dir='rtl']) & {
+      box-shadow: inset -3px 0 0 $color-accent;
+    }
   }
 
   @media (min-width: $breakpoint-md) {

@@ -103,6 +103,39 @@ point. The application calls no AI model or external service at runtime; AI was 
 plan, write, and review code ([PROMPTS.md](PROMPTS.md)). The same `RefillEvaluator.Evaluate`
 serves the queue, the review screen, and approval processing.
 
+### Bilingual localization and themes (feature 005)
+
+Spec: [specs/005-bilingual-localization-themes/spec.md](specs/005-bilingual-localization-themes/spec.md).
+No rule, code, status, transaction, concurrency, or live-update change.
+
+- **Languages**: Arabic is the default and is right-to-left; English is left-to-right. The header has
+  a language control (العربية / English, each named in its own language) and a Light/Dark theme
+  control. Both are kept per browser in `localStorage` (`prx.language`, `prx.theme`), independently
+  of each other. A boot script in `index.html` applies them before the first paint, so there is no
+  flash of the wrong direction or theme. Switching needs no page reload: the current screen reloads
+  its server data and keeps status, search, page, page size, and any typed note.
+- **Server language**: the API resolves each request from `Accept-Language` only, using ASP.NET Core
+  request localization. `ar` and `en` and their regional variants map to that language; anything
+  else is Arabic. Responses carry `Content-Language`. Codes, statuses, ids, numbers, and instants are
+  identical in both languages; only `message`, `title`, `detail`, `errors`, and names change. Message
+  text moved out of Domain, which now returns codes and facts, into a typed catalog (`IAppText`,
+  English verbatim). This amends 001 FR-023: a language switch is a reload trigger.
+- **Reference data**: medications store `NameAr`/`NameEn` and interactions store
+  `DescriptionAr`/`DescriptionEn`, with no translation table. Every name and description in a
+  response is selected in SQL for one language by AutoMapper `ProjectTo` with one configuration per
+  language; the SQL names only that language's column (tested). All safety values still come from
+  the rule read. Search matches the medication name in the active language only (amends 003 FR-007).
+- **Text**: patient names, dosages, and notes are never translated; they render in their own
+  direction (`dir="auto"`/`<bdi>`). Dates keep the 001 format with localized month names and
+  Western digits; the time and offset sit in a left-to-right isolate (amends the 001 FR-024 example).
+- **Dark theme**: every color role is a CSS custom property with a Light (004, unchanged) and a Dark
+  value. Clinical content stays on opaque surfaces (amends 004 FR-007 for Dark). Print always uses
+  Light. All 70 checked token pairs (35 per theme) meet WCAG AA
+  (`specs/005-bilingual-localization-themes/scripts/contrast-check.mjs`).
+- **AutoMapper** 16.2.0 is used under the Lucky Penny Community License (license verified
+  2026-10-21; research R1). The key comes from configuration `AutoMapper:LicenseKey` and is never
+  committed.
+
 ## Data model
 
 Full field rules: [data-model.md](specs/001-refill-request-review/data-model.md). All data is
@@ -111,9 +144,9 @@ fictional.
 | Entity | Key fields | Relationships and constraints |
 |--------|------------|-------------------------------|
 | Patient | `FullName`, `DateOfBirth` | has many Allergies and Prescriptions |
-| Medication | `Name` (unique, synthetic) | referenced by Prescription, Allergy, DrugInteraction |
+| Medication | `NameAr`, `NameEn` (each unique, synthetic; 005) | referenced by Prescription, Allergy, DrugInteraction |
 | Allergy | `PatientId`, `MedicationId` | unique per patient and medication; matching is exact medication |
-| DrugInteraction | `MedicationAId`, `MedicationBId`, `Description` | CHECK `MedicationAId < MedicationBId`; unique pair; 4 seeded synthetic pairs |
+| DrugInteraction | `MedicationAId`, `MedicationBId`, `DescriptionAr`, `DescriptionEn` (005) | CHECK `MedicationAId < MedicationBId`; unique pair; 4 seeded synthetic pairs |
 | Prescription | `Dosage`, `DaysSupply`, `RemainingRefills`, `LastFilledAt` (UTC), `IsActive`, `RowVersion` | belongs to Patient and Medication; CHECK `DaysSupply > 0`, `RemainingRefills >= 0` |
 | RefillRequest | `Status` (`Pending`/`Approved`/`Denied`), `RequestedAt`, `DecidedAt`, `DecisionNote` (≤ 1,000), `RowVersion` | belongs to Prescription; filtered unique index `UX_RefillRequests_Pending` allows one Pending request per prescription |
 
@@ -124,7 +157,11 @@ denial writes only the request.
 ## API
 
 Full contract and examples: [contracts/http-api.md](specs/001-refill-request-review/contracts/http-api.md).
-Errors are ProblemDetails with a stable `code`.
+Errors are ProblemDetails with a stable `code`. Since feature 005, every endpoint reads
+`Accept-Language` (`ar` default, or `en`) for human-readable text and names, and answers with
+`Content-Language` ([005 contract](specs/005-bilingual-localization-themes/contracts/http-api.md)).
+A client that sends no header now gets Arabic text; `Accept-Language: en` returns the English output
+as before.
 
 | Method and route | Purpose | Success | Errors |
 |------------------|---------|---------|--------|
@@ -178,6 +215,13 @@ against SQL Server: `tests/PrescriptionRefill.IntegrationTests`.
   still evaluated on each Pending list load, because the summary covers the whole status.
 - Counts are shown only for the selected status; other statuses show no count because their
   records are not loaded (002 research R6, R7).
+- The Arabic interface and server texts have not yet been reviewed by an Arabic speaker (005
+  quickstart V13, not run).
+- Arabic search is a literal "contains" match, with no normalization of letter forms or diacritics
+  (005 spec Assumptions). Each browser tab picks up the other tab's preference changes only when it
+  reloads.
+- API clients that send no `Accept-Language` now get Arabic text and names instead of English
+  (005 spec C7).
 
 ## Verification
 
@@ -210,6 +254,10 @@ SDK 11.0.100-rc.2 → net10.0, Angular 19.2, headless Edge 155). Nothing listed 
 | Creative Clinical UI 004 | `npm run test:ci`, `npm run build`, `dotnet build`, `dotnet test` | Frontend 117/117 (baseline 98); build OK, initial 424.01 kB; backend 0 warnings, 47/47 and 103/103 |
 | Creative Clinical UI 004 | Fresh copy without build output, new throwaway database, README commands unchanged (ports free) | Seeded; 6/1/1; `npm ci`; 117/117; `npm start`; `/api` and `/hubs` 200 through the proxy |
 | Creative Clinical UI 004 | Headless Edge over the DevTools protocol, quickstart V1–V12 ([results](specs/004-creative-clinical-ui/quickstart.md#results-t033t035-2026-10-20-all-from-actual-runs)) | All pass: no overflow; safety-first order; states labeled in grayscale; 200% zoom; light matches pointer before/after scrolling; 0 animations at rest; static under reduced motion and touch; focus visible; forced colors; 0 long tasks while typing and scrolling (light on and off); 44 px targets; 0 contrast failures. Not run: a manual human browser session |
+| Bilingual localization and themes 005 | `dotnet test` (3 consecutive runs) | Domain 47/47; SQL Server integration 187/187 each run (baseline 103; 84 new, none removed) |
+| Bilingual localization and themes 005 | `npm run test:ci`, `npm run build` | Frontend 159/159 (baseline 117; 42 new); build OK, initial 462.64 kB |
+| Bilingual localization and themes 005 | Throwaway seeded database, API on 5180, dev server on 4300, headless Edge over the DevTools protocol ([results](specs/005-bilingual-localization-themes/quickstart.md#results)) | 73/73: Arabic/RTL/Light on first visit and first frame; 4 combinations × 5 screens × 360 px/1280 px/200% with no overflow; switches visible in ≤ 16 ms; preferences independent and persistent; corrupt or blocked storage safe; forced colors and print in Dark. Not run: axe audit, Narrator, Arabic-speaker review |
+| Bilingual localization and themes 005 | Fresh copy without build output, `node_modules`, or `.git`; new throwaway database; README commands | `--seed` seeded, then skipped; API without a header answers `Content-Language: ar` and Arabic names, `Accept-Language: en` the English names; README `curl` 201, duplicate 409 `pending_request_exists` worded in Arabic; `npm ci`, `npm run test:ci` 158/158, `npm run build` OK. Not run in this pass: `npm start` with a browser session |
 
 Quickstart coverage: V1–V12 and V13 were run as above; V14 (API stopped → error state and
 "live updates unavailable") and V15–V17 (time display, notice, 360px) are covered by component

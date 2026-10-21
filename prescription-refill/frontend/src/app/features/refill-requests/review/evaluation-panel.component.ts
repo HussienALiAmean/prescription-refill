@@ -1,20 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { InstantComponent } from '../../../shared/time/instant.component';
 import { AlertComponent } from '../../../shared/ui/alert.component';
 import { IconComponent } from '../../../shared/ui/icon.component';
 import { BadgeTone, StatusBadgeComponent } from '../../../shared/ui/status-badge.component';
 import { BlockingReasonCode, Evaluation, WarningCode } from '../data/models';
-
-const BLOCKING_LABELS: Record<BlockingReasonCode, string> = {
-  TOO_EARLY: 'Too early',
-  NO_REFILLS_REMAINING: 'No refills remaining',
-  INVALID_PRESCRIPTION_DATA: 'Invalid prescription data',
-};
-
-const WARNING_LABELS: Record<WarningCode, string> = {
-  ALLERGY_CONFLICT: 'Allergy conflict',
-  DRUG_INTERACTION: 'Drug interaction',
-};
 
 /**
  * Shows the server's evaluation with its time and a staleness notice (FR-005, FR-023). It renders
@@ -28,6 +18,8 @@ const WARNING_LABELS: Record<WarningCode, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvaluationPanelComponent {
+  protected readonly t = inject(I18nService).t;
+
   readonly evaluation = input.required<Evaluation>();
   readonly refreshing = input(false);
   readonly refresh = output<void>();
@@ -40,16 +32,18 @@ export class EvaluationPanelComponent {
     const { blockingReasons, warnings } = this.evaluation();
     // Named in text; the no-issues state is neutral, never a reassuring "safe" signal (004 FR-014, FR-015).
     if (blockingReasons.length > 0) {
-      return { label: 'Approval blocked', tone: 'danger' };
+      return { label: this.t().common.approvalBlocked, tone: 'danger' };
     }
-    return warnings.length > 0 ? { label: 'Warnings', tone: 'warning' } : { label: 'No issues found', tone: 'neutral' };
+    return warnings.length > 0
+      ? { label: this.t().common.warnings, tone: 'warning' }
+      : { label: this.t().common.noIssuesFound, tone: 'neutral' };
   });
 
   protected blockingLabel(code: BlockingReasonCode): string {
-    return BLOCKING_LABELS[code] ?? code;
+    return this.t().evaluation.blocking[code] ?? code;
   }
 
   protected warningLabel(code: WarningCode): string {
-    return WARNING_LABELS[code] ?? code;
+    return this.t().evaluation.warning[code] ?? code;
   }
 }

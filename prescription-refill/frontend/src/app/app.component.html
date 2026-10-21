@@ -7,21 +7,40 @@
     <a class="brand" routerLink="/requests">
       <span class="brand-mark"><app-icon name="pill" [size]="18" /></span>
       <span class="brand-text">
-        <span class="brand-name">Refill Requests</span>
-        <span class="brand-tagline">Clinician review</span>
+        <span class="brand-name">{{ t().app.brandName }}</span>
+        <span class="brand-tagline">{{ t().app.brandTagline }}</span>
       </span>
     </a>
-    <app-connection-indicator />
+    <div class="header-tools">
+      <app-connection-indicator />
+      <!-- Language and theme (spec 005 FR-008, FR-026): independent, on every screen. -->
+      <div class="preferences" role="group" [attr.aria-label]="t().app.preferences">
+        <app-preference-switch
+          name="language"
+          testId="language-switch"
+          [legend]="t().app.language"
+          [options]="languageOptions"
+          [value]="i18n.language()"
+          (changed)="setLanguage($event)"
+        />
+        <app-preference-switch
+          name="theme"
+          testId="theme-switch"
+          [legend]="t().app.theme"
+          [options]="themeOptions()"
+          [value]="themes.theme()"
+          (changed)="setTheme($event)"
+        />
+      </div>
+      <p class="visually-hidden" aria-live="polite" data-testid="preference-announcement">{{ announcement() }}</p>
+    </div>
   </div>
 </header>
 
 <p class="demo-notice on-canvas" role="note">
   <span class="container demo-notice-inner">
     <app-icon name="info" [size]="16" />
-    <span>
-      Fictional demo data — not clinical guidance. No sign-in: anyone with access can decide
-      requests; not for real patient data.
-    </span>
+    <span>{{ t().app.demoNotice }}</span>
   </span>
 </p>
 

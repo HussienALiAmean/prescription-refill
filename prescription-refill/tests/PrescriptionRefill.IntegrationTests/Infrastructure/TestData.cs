@@ -8,7 +8,9 @@ using PrescriptionRefill.Infrastructure.Persistence;
 namespace PrescriptionRefill.IntegrationTests.Infrastructure;
 
 /// <summary>IDs of one arranged patient, prescription, and (optionally) refill request.</summary>
-public sealed record Arranged(int PatientId, int MedicationId, int PrescriptionId, int? RequestId, string MedicationName);
+/// <param name="MedicationName">The English name (what English-pinned clients see).</param>
+/// <param name="MedicationNameAr">The Arabic name (spec 005 FR-019).</param>
+public sealed record Arranged(int PatientId, int MedicationId, int PrescriptionId, int? RequestId, string MedicationName, string MedicationNameAr);
 
 /// <summary>
 /// Arranges rows directly in SQL Server. Names are unique per call so tests sharing one database
@@ -30,16 +32,19 @@ public sealed class TestData(SqlServerDatabaseFixture database)
         bool interactingInactive = false,
         TimeSpan? requestedAgo = null,
         string? patientName = null,
-        string? medicationName = null)
+        string? medicationName = null,
+        string? medicationNameAr = null)
     {
         await using var db = NewContext();
 
-        var requested = new Medication(medicationName ?? UniqueName("Req"));
-        var interacting = new Medication(UniqueName("Int"));
+        var requestedName = medicationName ?? UniqueName("Req");
+        var requested = new Medication(medicationNameAr ?? ArabicNameFor(requestedName), requestedName);
+        var interactingName = UniqueName("Int");
+        var interacting = new Medication(ArabicNameFor(interactingName), interactingName);
         db.Medications.AddRange(requested, interacting);
         await db.SaveChangesAsync();
 
-        db.DrugInteractions.Add(new DrugInteraction(requested, interacting, "Synthetic test interaction."));
+        db.DrugInteractions.Add(new DrugInteraction(requested, interacting, ArabicInteractionDescription, "Synthetic test interaction."));
 
         var patient = new Patient(patientName ?? $"Test Patient {Guid.NewGuid():N}"[..24], new DateOnly(1980, 1, 1));
         db.Patients.Add(patient);
@@ -65,7 +70,7 @@ public sealed class TestData(SqlServerDatabaseFixture database)
         }
 
         await db.SaveChangesAsync();
-        return new Arranged(patient.Id, requested.Id, prescription.Id, request?.Id, requested.Name);
+        return new Arranged(patient.Id, requested.Id, prescription.Id, request?.Id, requested.NameEn, requested.NameAr);
     }
 
     /// <summary>Adds a new Pending request for an existing prescription (Domain factory).</summary>
@@ -106,4 +111,16 @@ public sealed class TestData(SqlServerDatabaseFixture database)
     }
 
     private static string UniqueName(string prefix) => $"{prefix}-{Guid.NewGuid():N}"[..24];
+
+    public const string ArabicInteractionDescription = "تداخل اختباري مُصطنع.";
+
+    /// <summary>
+    /// A distinct Arabic name for an English test name: Arabic prefix plus the unique English
+    /// suffix, so names stay unique in both languages and no Arabic name equals an English one.
+    /// </summary>
+    public static string ArabicNameFor(string englishName) => $"دواء {englishName}";
+
+    /// <summary>A unique token in Arabic letters only, for names that must share no text with English.</summary>
+    public static string ArabicToken() =>
+        string.Concat(Guid.NewGuid().ToString("N")[..10].Select(c => "ابتثجحخدذرسشصضطظ"[Convert.ToInt32(c.ToString(), 16)]));
 }

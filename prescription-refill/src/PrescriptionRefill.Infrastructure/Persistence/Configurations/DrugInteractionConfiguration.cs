@@ -12,7 +12,8 @@ internal sealed class DrugInteractionConfiguration : IEntityTypeConfiguration<Dr
             table.HasCheckConstraint("CK_DrugInteractions_PairOrder", "[MedicationAId] < [MedicationBId]"));
         builder.HasKey(i => i.Id);
 
-        builder.Property(i => i.Description).HasMaxLength(DrugInteraction.MaxDescriptionLength).IsRequired();
+        builder.Property(i => i.DescriptionAr).HasMaxLength(DrugInteraction.MaxDescriptionLength).IsRequired();
+        builder.Property(i => i.DescriptionEn).HasMaxLength(DrugInteraction.MaxDescriptionLength).IsRequired();
 
         builder.HasOne(i => i.MedicationA)
             .WithMany()

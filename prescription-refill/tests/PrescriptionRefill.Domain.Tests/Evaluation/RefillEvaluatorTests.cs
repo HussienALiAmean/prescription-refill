@@ -90,7 +90,9 @@ public sealed class RefillEvaluatorTests
 
         var result = Evaluate(rx);
 
-        Assert.Equal(BlockingReasonCodes.InvalidPrescriptionData, Assert.Single(result.BlockingReasons).Code);
+        var reason = Assert.Single(result.BlockingReasons);
+        Assert.Equal(BlockingReasonCodes.InvalidPrescriptionData, reason.Code);
+        Assert.Equal(InvalidPrescriptionData.LastFilledAfterEvaluation, reason.InvalidData);
         Assert.Null(result.EligibleAt);
         Assert.False(result.CanApprove);
     }
@@ -104,7 +106,9 @@ public sealed class RefillEvaluatorTests
 
         var result = Evaluate(rx);
 
-        Assert.Equal(BlockingReasonCodes.InvalidPrescriptionData, Assert.Single(result.BlockingReasons).Code);
+        var reason = Assert.Single(result.BlockingReasons);
+        Assert.Equal(BlockingReasonCodes.InvalidPrescriptionData, reason.Code);
+        Assert.Equal(InvalidPrescriptionData.DaysSupplyNotPositive, reason.InvalidData);
         Assert.Null(result.EligibleAt);
         Assert.False(result.CanApprove);
     }
@@ -116,7 +120,9 @@ public sealed class RefillEvaluatorTests
 
         var result = Evaluate(rx);
 
-        Assert.Equal(BlockingReasonCodes.InvalidPrescriptionData, Assert.Single(result.BlockingReasons).Code);
+        var reason = Assert.Single(result.BlockingReasons);
+        Assert.Equal(BlockingReasonCodes.InvalidPrescriptionData, reason.Code);
+        Assert.Equal(InvalidPrescriptionData.LastFilledMissing, reason.InvalidData);
         Assert.False(result.CanApprove);
     }
 
@@ -165,8 +171,8 @@ public sealed class RefillEvaluatorTests
 
         var warning = Assert.Single(result.Warnings);
         Assert.Equal(WarningCodes.AllergyConflict, warning.Code);
-        Assert.Equal("Elvadine", warning.MedicationName);
-        Assert.Null(warning.Description);
+        Assert.Same(medication, warning.Medication);
+        Assert.Null(warning.Interaction);
         Assert.True(result.CanApprove);
     }
 
@@ -191,15 +197,15 @@ public sealed class RefillEvaluatorTests
         var rx = Prescription(patient, requested);
         var otherRx = Prescription(patient, other);
         var interaction = requestedFirst
-            ? new DrugInteraction(requested, other, "Synthetic demo interaction.")
-            : new DrugInteraction(other, requested, "Synthetic demo interaction.");
+            ? new DrugInteraction(requested, other, "تداخل تجريبي.", "Synthetic demo interaction.")
+            : new DrugInteraction(other, requested, "تداخل تجريبي.", "Synthetic demo interaction.");
 
         var result = Evaluate(rx, new EvaluationFacts([], [rx, otherRx], [interaction]));
 
         var warning = Assert.Single(result.Warnings);
         Assert.Equal(WarningCodes.DrugInteraction, warning.Code);
-        Assert.Equal("Glimora", warning.MedicationName);
-        Assert.Equal("Synthetic demo interaction.", warning.Description);
+        Assert.Same(other, warning.Medication);
+        Assert.Same(interaction, warning.Interaction);
         Assert.True(result.CanApprove);
     }
 
@@ -212,7 +218,7 @@ public sealed class RefillEvaluatorTests
         var rx = Prescription(patient, requested);
         var inactive = Prescription(patient, other, isActive: false);
 
-        var result = Evaluate(rx, new EvaluationFacts([], [rx, inactive], [new DrugInteraction(requested, other, "x")]));
+        var result = Evaluate(rx, new EvaluationFacts([], [rx, inactive], [new DrugInteraction(requested, other, "س", "x")]));
 
         Assert.Empty(result.Warnings);
     }
@@ -224,7 +230,7 @@ public sealed class RefillEvaluatorTests
         var requested = Medication("Halvexin");
         var rx = Prescription(patient, requested);
         var duplicate = Prescription(patient, requested);
-        var unrelated = new DrugInteraction(requested, Medication("Jurvane"), "x");
+        var unrelated = new DrugInteraction(requested, Medication("Jurvane"), "س", "x");
 
         Assert.Empty(Evaluate(rx, new EvaluationFacts([], [rx, duplicate], [unrelated])).Warnings);
     }
@@ -239,7 +245,7 @@ public sealed class RefillEvaluatorTests
         var rx = Prescription(patient, requested);
         var otherRx = Prescription(patient, other);
 
-        var result = Evaluate(rx, new EvaluationFacts([allergy], [rx, otherRx], [new DrugInteraction(requested, other, "x")]));
+        var result = Evaluate(rx, new EvaluationFacts([allergy], [rx, otherRx], [new DrugInteraction(requested, other, "س", "x")]));
 
         Assert.Equal(2, result.Warnings.Count);
         Assert.True(result.CanApprove);
@@ -254,7 +260,7 @@ public sealed class RefillEvaluatorTests
         var rx = Prescription(patient, requested, remainingRefills: 0, lastFilledAt: Now.AddDays(-5));
         var otherRx = Prescription(patient, other);
 
-        var result = Evaluate(rx, new EvaluationFacts([], [rx, otherRx], [new DrugInteraction(requested, other, "x")]));
+        var result = Evaluate(rx, new EvaluationFacts([], [rx, otherRx], [new DrugInteraction(requested, other, "س", "x")]));
 
         Assert.Equal(2, result.BlockingReasons.Count);
         Assert.Single(result.Warnings);

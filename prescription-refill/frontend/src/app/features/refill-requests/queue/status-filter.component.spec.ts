@@ -1,11 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { RequestStatus } from '../data/models';
 import { StatusFilterComponent } from './status-filter.component';
+import { provideI18nTesting } from '../../../core/i18n/testing';
 
 // Rewritten for the segmented switcher (002 research R7, intentional change). The previous
 // assertions (labeled "Show", three options in order, current selection, change emitted) are
 // kept against radios; count display is new.
 describe('StatusFilterComponent', () => {
+  // English, so these assertions keep their meaning with the Arabic default (spec 005 SC-010).
+  beforeEach(() => TestBed.configureTestingModule({ providers: provideI18nTesting() }));
+
   function render(value: RequestStatus, count: number | null = null) {
     const fixture = TestBed.createComponent(StatusFilterComponent);
     fixture.componentRef.setInput('value', value);

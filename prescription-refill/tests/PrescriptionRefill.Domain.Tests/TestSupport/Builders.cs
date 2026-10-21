@@ -11,7 +11,8 @@ internal static class Builders
 
     public static FakeTimeProvider Clock(DateTimeOffset? at = null) => new(at ?? Now);
 
-    public static Medication Medication(string name = "Testmed") => new(name);
+    /// <summary>English name as given; the Arabic name is derived so both stay unique per test.</summary>
+    public static Medication Medication(string name = "Testmed") => new($"دواء {name}", name);
 
     public static Patient Patient() => new("Test Patient", new DateOnly(1980, 1, 1));
 

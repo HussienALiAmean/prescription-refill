@@ -23,7 +23,7 @@ public static class RefillEvaluator
         var invalidReason = InvalidTimingData(requested, evaluatedAt);
         if (invalidReason is not null)
         {
-            blocking.Add(new BlockingReason(BlockingReasonCodes.InvalidPrescriptionData, invalidReason));
+            blocking.Add(new BlockingReason(BlockingReasonCodes.InvalidPrescriptionData, InvalidData: invalidReason));
         }
         else
         {
@@ -34,36 +34,33 @@ public static class RefillEvaluator
             // Strictly less than the threshold blocks; exact equality does not (FR-006).
             if ((evaluatedAt - lastFilledAt).Ticks < threshold)
             {
-                blocking.Add(new BlockingReason(
-                    BlockingReasonCodes.TooEarly,
-                    $"Less than 80% of the {requested.DaysSupply}-day supply has elapsed since the last fill.",
-                    eligibleAt));
+                blocking.Add(new BlockingReason(BlockingReasonCodes.TooEarly, eligibleAt));
             }
         }
 
         if (requested.RemainingRefills <= 0)
         {
-            blocking.Add(new BlockingReason(BlockingReasonCodes.NoRefillsRemaining, "No refills remain on this prescription."));
+            blocking.Add(new BlockingReason(BlockingReasonCodes.NoRefillsRemaining));
         }
 
         return new RefillEvaluation(evaluatedAt, eligibleAt, blocking, Warnings(requested, facts));
     }
 
-    private static string? InvalidTimingData(Prescription requested, DateTimeOffset evaluatedAt)
+    private static InvalidPrescriptionData? InvalidTimingData(Prescription requested, DateTimeOffset evaluatedAt)
     {
         if (requested.DaysSupply <= 0)
         {
-            return "The prescription's days supply is not a positive number.";
+            return InvalidPrescriptionData.DaysSupplyNotPositive;
         }
 
         if (requested.LastFilledAt == default)
         {
-            return "The prescription has no last filled time.";
+            return InvalidPrescriptionData.LastFilledMissing;
         }
 
         if (requested.LastFilledAt > evaluatedAt)
         {
-            return "The prescription's last filled time is later than the evaluation time.";
+            return InvalidPrescriptionData.LastFilledAfterEvaluation;
         }
 
         return null;
@@ -76,10 +73,7 @@ public static class RefillEvaluator
 
         if (facts.Allergies.Any(a => a.Medication.IsSameAs(medication)))
         {
-            warnings.Add(new Warning(
-                WarningCodes.AllergyConflict,
-                $"The patient has a recorded allergy to {medication.Name}.",
-                medication.Name));
+            warnings.Add(new Warning(WarningCodes.AllergyConflict, medication));
         }
 
         var seen = new List<Medications.Medication>();
@@ -95,11 +89,7 @@ public static class RefillEvaluator
             if (interaction is not null)
             {
                 seen.Add(other);
-                warnings.Add(new Warning(
-                    WarningCodes.DrugInteraction,
-                    $"{medication.Name} has a synthetic demo interaction with active medication {other.Name}.",
-                    other.Name,
-                    interaction.Description));
+                warnings.Add(new Warning(WarningCodes.DrugInteraction, other, interaction));
             }
         }
 

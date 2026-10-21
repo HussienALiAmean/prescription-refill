@@ -1,6 +1,8 @@
 using System.Globalization;
 using Microsoft.Extensions.Primitives;
 using PrescriptionRefill.Api.Errors;
+using PrescriptionRefill.Api.Localization;
+using PrescriptionRefill.Application.Localization;
 using PrescriptionRefill.Application.Common;
 using PrescriptionRefill.Application.RefillRequests.Commands;
 using PrescriptionRefill.Application.RefillRequests.Queries;
@@ -8,7 +10,11 @@ using PrescriptionRefill.Domain.RefillRequests;
 
 namespace PrescriptionRefill.Api.Endpoints;
 
-/// <summary>Refill request endpoints (contracts/http-api.md). There is no update or delete.</summary>
+/// <summary>
+/// Refill request endpoints (contracts/http-api.md). There is no update or delete. Each handler
+/// resolves the request language once and passes it on; parsing stays language-independent
+/// (spec 005 FR-011).
+/// </summary>
 public static class RefillRequestEndpoints
 {
     public sealed record DecisionBody(string? Note);
@@ -24,56 +30,64 @@ public static class RefillRequestEndpoints
 
         group.MapGet("/", async Task<IResult> (string? status, HttpRequest request, GetRefillRequests query, CancellationToken cancellationToken) =>
         {
+            var language = RequestLanguage.From(request.HttpContext);
+            var text = AppText.For(language);
+
             // Absent means Pending; anything else must be one of the status names exactly.
             var parsed = RefillRequestStatus.Pending;
             if (status is not null && !StatusNames.TryGetValue(status, out parsed))
             {
-                return ProblemResults.Validation("status", "Status must be Pending, Approved, or Denied.");
+                return ProblemResults.Validation(text, "status", text.StatusInvalid);
             }
 
-            var (paging, error) = ParsePaging(request.Query);
+            var (paging, error) = ParsePaging(request.Query, text);
             if (error is not null)
             {
-                return ProblemResults.Validation(error.Value.Field, error.Value.Message);
+                return ProblemResults.Validation(text, error.Value.Field, error.Value.Message);
             }
 
-            return TypedResults.Ok(await query.ExecuteAsync(new RefillRequestListQuery(parsed, paging), cancellationToken));
+            return TypedResults.Ok(await query.ExecuteAsync(new RefillRequestListQuery(parsed, paging), language, cancellationToken));
         });
 
         // API only; no UI calls it (FR-001).
-        group.MapPost("/", async Task<IResult> (CreateBody? body, CreateRefillRequest command, CancellationToken cancellationToken) =>
+        group.MapPost("/", async Task<IResult> (CreateBody? body, HttpContext http, CreateRefillRequest command, CancellationToken cancellationToken) =>
         {
+            var language = RequestLanguage.From(http);
+            var text = AppText.For(language);
             if (body?.PrescriptionId is not { } prescriptionId || prescriptionId <= 0)
             {
-                return ProblemResults.Validation("prescriptionId", "A prescription id is required.");
+                return ProblemResults.Validation(text, "prescriptionId", text.PrescriptionIdRequired);
             }
 
             try
             {
-                return await command.ExecuteAsync(prescriptionId, cancellationToken) switch
+                return await command.ExecuteAsync(prescriptionId, language, cancellationToken) switch
                 {
                     CreateOutcome.Created created => TypedResults.Created($"/api/refill-requests/{created.Request.Id}", created.Request),
-                    CreateOutcome.PrescriptionNotFound => ProblemResults.NotFound("prescription"),
-                    CreateOutcome.Invalid invalid => ProblemResults.Validation(invalid.Field, invalid.Message),
+                    CreateOutcome.PrescriptionNotFound => ProblemResults.NotFound(text.PrescriptionNotFound),
+                    CreateOutcome.PrescriptionInactive => ProblemResults.Validation(text, "prescriptionId", text.PrescriptionInactive),
                     var other => throw new InvalidOperationException($"Unhandled outcome {other}."),
                 };
             }
             catch (PendingRequestExistsException)
             {
-                return ProblemResults.PendingRequestExists(prescriptionId);
+                return ProblemResults.PendingRequestExists(text, prescriptionId);
             }
         });
 
-        group.MapGet("/{id:int}", async Task<IResult> (int id, GetRefillRequestDetail query, CancellationToken cancellationToken) =>
-            await query.ExecuteAsync(id, cancellationToken) is { } detail
+        group.MapGet("/{id:int}", async Task<IResult> (int id, HttpContext http, GetRefillRequestDetail query, CancellationToken cancellationToken) =>
+        {
+            var language = RequestLanguage.From(http);
+            return await query.ExecuteAsync(id, language, cancellationToken) is { } detail
                 ? TypedResults.Ok(detail)
-                : ProblemResults.NotFound("refill request"));
+                : ProblemResults.NotFound(AppText.For(language).RefillRequestNotFound);
+        });
 
-        group.MapPost("/{id:int}/approve", (int id, DecisionBody? body, ApproveRefillRequest command, CancellationToken cancellationToken) =>
-            DecideAsync(id, () => command.ExecuteAsync(id, body?.Note, cancellationToken)));
+        group.MapPost("/{id:int}/approve", (int id, DecisionBody? body, HttpContext http, ApproveRefillRequest command, CancellationToken cancellationToken) =>
+            DecideAsync(id, RequestLanguage.From(http), language => command.ExecuteAsync(id, body?.Note, language, cancellationToken)));
 
-        group.MapPost("/{id:int}/deny", (int id, DecisionBody? body, DenyRefillRequest command, CancellationToken cancellationToken) =>
-            DecideAsync(id, () => command.ExecuteAsync(id, body?.Note, cancellationToken)));
+        group.MapPost("/{id:int}/deny", (int id, DecisionBody? body, HttpContext http, DenyRefillRequest command, CancellationToken cancellationToken) =>
+            DecideAsync(id, RequestLanguage.From(http), language => command.ExecuteAsync(id, body?.Note, language, cancellationToken)));
 
         return app;
     }
@@ -83,7 +97,7 @@ public static class RefillRequestEndpoints
     /// any of them is present, even empty (research R1). Read from the raw query so presence and
     /// exact text are known. The search text is never logged (003 FR-009).
     /// </summary>
-    private static (PageRequest? Paging, (string Field, string Message)? Error) ParsePaging(IQueryCollection query)
+    private static (PageRequest? Paging, (string Field, string Message)? Error) ParsePaging(IQueryCollection query, IAppText text)
     {
         if (!query.ContainsKey("page") && !query.ContainsKey("pageSize") && !query.ContainsKey("search"))
         {
@@ -93,20 +107,20 @@ public static class RefillRequestEndpoints
         var page = 1;
         if (query.TryGetValue("page", out var pageText) && (!TryParseWholeNumber(pageText, out page) || page < 1))
         {
-            return (null, ("page", "Page must be a whole number of at least 1."));
+            return (null, ("page", text.PageInvalid));
         }
 
         var pageSize = RefillRequestListQuery.DefaultPageSize;
         if (query.TryGetValue("pageSize", out var pageSizeText)
             && (!TryParseWholeNumber(pageSizeText, out pageSize) || pageSize < 1 || pageSize > RefillRequestListQuery.MaxPageSize))
         {
-            return (null, ("pageSize", $"Page size must be a whole number from 1 to {RefillRequestListQuery.MaxPageSize}."));
+            return (null, ("pageSize", text.PageSizeInvalid(RefillRequestListQuery.MaxPageSize)));
         }
 
         var search = query.TryGetValue("search", out var searchText) ? searchText.ToString().Trim() : string.Empty;
         if (search.Length > RefillRequestListQuery.MaxSearchLength)
         {
-            return (null, ("search", $"Search must be at most {RefillRequestListQuery.MaxSearchLength} characters."));
+            return (null, ("search", text.SearchTooLong(RefillRequestListQuery.MaxSearchLength)));
         }
 
         return (new PageRequest(page, pageSize, search.Length == 0 ? null : search), null);
@@ -116,24 +130,30 @@ public static class RefillRequestEndpoints
     private static bool TryParseWholeNumber(StringValues text, out int value) =>
         int.TryParse(text.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out value);
 
-    private static async Task<IResult> DecideAsync(int id, Func<Task<DecisionOutcome>> decide)
+    private static async Task<IResult> DecideAsync(int id, Language language, Func<Language, Task<DecisionOutcome>> decide)
     {
+        var text = AppText.For(language);
         try
         {
-            return await decide() switch
+            return await decide(language) switch
             {
                 DecisionOutcome.Succeeded success => TypedResults.Ok(success.Request),
-                DecisionOutcome.NotFound => ProblemResults.NotFound("refill request"),
-                DecisionOutcome.InvalidNote invalid => ProblemResults.Validation("note", invalid.Message),
-                DecisionOutcome.AlreadyDecided decided => ProblemResults.AlreadyDecided(id, decided.Status),
-                DecisionOutcome.Blocked blocked => ProblemResults.ApprovalBlocked(id, blocked.Evaluation),
+                DecisionOutcome.NotFound => ProblemResults.NotFound(text.RefillRequestNotFound),
+                DecisionOutcome.InvalidNote invalid => ProblemResults.Validation(text, "note", invalid.Error switch
+                {
+                    NoteError.Required => text.NoteRequired,
+                    NoteError.TooLong => text.NoteTooLong(RefillRequest.MaxNoteLength),
+                    var error => throw new InvalidOperationException($"Unhandled note error {error}."),
+                }),
+                DecisionOutcome.AlreadyDecided decided => ProblemResults.AlreadyDecided(text, id, decided.Status),
+                DecisionOutcome.Blocked blocked => ProblemResults.ApprovalBlocked(text, id, blocked.Evaluation),
                 var other => throw new InvalidOperationException($"Unhandled outcome {other}."),
             };
         }
         catch (ConcurrencyConflictException)
         {
             // Raised only after the transaction was rolled back (FR-013); never retried (FR-016).
-            return ProblemResults.ConcurrencyConflict(id);
+            return ProblemResults.ConcurrencyConflict(text, id);
         }
     }
 }

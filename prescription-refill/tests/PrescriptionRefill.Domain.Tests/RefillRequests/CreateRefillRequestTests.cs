@@ -36,7 +36,7 @@ public sealed class CreateRefillRequestTests
 
         var result = RefillRequest.TryCreate(rx, Now);
 
-        Assert.Equal("Prescription is inactive.", Assert.IsType<CreateRequestResult.PrescriptionInactive>(result).Message);
+        Assert.IsType<CreateRequestResult.PrescriptionInactive>(result);
         Assert.Throws<InvalidOperationException>(() => RefillRequest.Create(rx, Now));
     }
 }

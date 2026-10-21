@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { RefillEventsService } from '../../../core/realtime/refill-events.service';
 import { IconComponent } from '../icon.component';
 
@@ -11,13 +12,13 @@ import { IconComponent } from '../icon.component';
       @case ('disconnected') {
         <p class="connection-indicator is-offline" role="status">
           <app-icon name="wifi-off" [size]="16" />
-          <span>Live updates unavailable — use Refresh.</span>
+          <span>{{ t().connection.offline }}</span>
         </p>
       }
       @case ('reconnecting') {
         <p class="connection-indicator is-reconnecting" role="status">
           <span class="spinner" aria-hidden="true"></span>
-          <span>Reconnecting live updates…</span>
+          <span>{{ t().connection.reconnecting }}</span>
         </p>
       }
     }
@@ -60,4 +61,5 @@ import { IconComponent } from '../icon.component';
 })
 export class ConnectionIndicatorComponent {
   protected readonly events = inject(RefillEventsService);
+  protected readonly t = inject(I18nService).t;
 }

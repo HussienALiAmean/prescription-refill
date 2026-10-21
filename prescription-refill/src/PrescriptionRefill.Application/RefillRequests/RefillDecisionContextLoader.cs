@@ -15,9 +15,13 @@ public sealed record RefillDecisionContext(RefillRequest Request, EvaluationFact
 /// </summary>
 public sealed class RefillDecisionContextLoader(IRefillDbContext db)
 {
+    public const string RuleReadTag = "refill:rule-read";
+
     public async Task<RefillDecisionContext?> LoadAsync(int requestId, CancellationToken cancellationToken)
     {
+        // The tag only adds an SQL comment; tests use it to find the rule read (spec 005 T037).
         var request = await db.RefillRequests
+            .TagWith(RuleReadTag)
             .Include(r => r.Prescription).ThenInclude(p => p.Medication)
             .Include(r => r.Prescription).ThenInclude(p => p.Patient).ThenInclude(p => p.Allergies).ThenInclude(a => a.Medication)
             .SingleOrDefaultAsync(r => r.Id == requestId, cancellationToken);

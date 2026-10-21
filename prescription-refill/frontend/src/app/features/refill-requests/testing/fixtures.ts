@@ -61,6 +61,29 @@ export function detail(overrides: Partial<RefillRequestDetail> = {}): RefillRequ
   };
 }
 
+/**
+ * The detail as the API returns it for `Accept-Language: ar` (spec 005): names and server texts
+ * arrive localized; recorded text (name, dosage, note) is unchanged. The UI maps no names itself.
+ */
+export function arabicDetail(): RefillRequestDetail {
+  const base = detail();
+  return {
+    ...base,
+    prescription: { ...base.prescription, medicationName: 'فينكيرا' },
+    activePrescriptions: [{ ...base.activePrescriptions[0], medicationName: 'غليمورا' }],
+    evaluation: evaluation({
+      warnings: [
+        {
+          code: 'DRUG_INTERACTION',
+          message: 'يوجد تداخل تجريبي مُصطنع بين فينكيرا والدواء النشط غليمورا.',
+          medicationName: 'غليمورا',
+          description: 'تداخل تجريبي مُصطنع (خيالي، وليس إرشادًا سريريًا).',
+        },
+      ],
+    }),
+  };
+}
+
 export function decided(status: 'Approved' | 'Denied' = 'Approved'): RefillRequestDetail {
   const { evaluation: _omit, ...rest } = detail();
   return { ...rest, status, decidedAt: '2026-10-20T11:30:00+00:00', decisionNote: 'Stable on current dose.' };
